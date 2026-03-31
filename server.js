@@ -1,24 +1,21 @@
-// В начало файла, после ADMIN_USERNAME
-const TOURNAMENT_ADMINS = new Set(); // Храним ID турнирных админов
-// Можно сразу добавить кого-то:
-// TOURNAMENT_ADMINS.add(123456789); // ID пользователя
+const express = require('express');
+const cors = require('cors');
 
-// Middleware для проверки турнирного админа
-function isTournamentAdmin(req, res, next) {
-    const { userId } = req.body;
-    const user = users.get(parseInt(userId));
-    
-    if (!user) return res.status(401).json({ error: 'Пользователь не найден' });
-    
-    // Полный админ или турнирный админ
-    if (user.username === ADMIN_USERNAME || TOURNAMENT_ADMINS.has(user.telegramId)) {
-        next();
-    } else {
-        res.status(403).json({ error: 'Доступ только для турнирных админов' });
-    }
-}
+const app = express(); // ЭТОЙ СТРОКИ НЕ ХВАТАЛО!
 
-// Обновляем модель пользователя
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+// Хранилища
+const users = new Map();
+const teams = new Map();
+const matches = new Map();
+const tournaments = new Map();
+const TOURNAMENT_ADMINS = new Set();
+const ADMIN_USERNAME = 'memorypatapim';
+
+// ==================== АВТОРИЗАЦИЯ ====================
 app.post('/api/auth/telegram', (req, res) => {
     const { id, username, first_name, photo_url } = req.body;
     
@@ -27,7 +24,7 @@ app.post('/api/auth/telegram', (req, res) => {
             telegramId: id,
             username: username || first_name,
             isAdmin: username === ADMIN_USERNAME,
-            isTournamentAdmin: TOURNAMENT_ADMINS.has(id), // Проверяем есть ли в списке
+            isTournamentAdmin: TOURNAMENT_ADMINS.has(id),
             avatarUrl: photo_url || null,
             bannerUrl: null,
             description: '🎮 Игрок в Brawl Stars',
@@ -39,10 +36,6 @@ app.post('/api/auth/telegram', (req, res) => {
     
     const user = users.get(id);
     
-    if (user.username === ADMIN_USERNAME) {
-        adminId = id;
-    }
-    
     if (user.isBanned) {
         return res.status(403).json({ error: 'Ваш аккаунт заблокирован' });
     }
@@ -52,227 +45,241 @@ app.post('/api/auth/telegram', (req, res) => {
         success: true, 
         token, 
         user: users.get(id),
-        isAdmin: user.username === ADMIN_USERNAME,
+        isAdmin: user.isAdmin,
         isTournamentAdmin: user.isTournamentAdmin || false
     });
 });
 
-// ==================== УПРАВЛЕНИЕ ТУРНИРНЫМИ АДМИНАМИ (только для главного админа) ====================
+// ==================== ПРОФИЛЬ ====================
+app.get('/api/profile/:id', (req, res) => {
+    const user = users.get(parseInt(req.params.id));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+});
 
-// Добавить турнирного админа
-app.post('/api/admin/add-tournament-admin', isAdmin, (req, res) => {
-    const { targetId } = req.body;
-    
-    const user = users.get(parseInt(targetId));
-    if (!user) return res.status(404).json({ error: 'Пользователь не найден' });
-    
-    TOURNAMENT_ADMINS.add(parseInt(targetId));
-    user.isTournamentAdmin = true;
+app.put('/api/profile/:id', (req, res) => {
+    const user = users.get(parseInt(req.params.id));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    Object.assign(user, req.body);
     users.set(user.telegramId, user);
-    
-    res.json({ success: true, message: `@${user.username} теперь турнирный админ` });
+    res.json({ success: true, user });
 });
 
-// Удалить турнирного админа
-app.post('/api/admin/remove-tournament-admin', isAdmin, (req, res) => {
-    const { targetId } = req.body;
-    
-    TOURNAMENT_ADMINS.delete(parseInt(targetId));
-    
-    const user = users.get(parseInt(targetId));
-    if (user) {
-        user.isTournamentAdmin = false;
-        users.set(user.telegramId, user);
+// ==================== КОМАНДЫ ====================
+app.get('/api/teams', (req, res) => {
+    res.json(Array.from(teams.values()));
+});
+
+app.get('/api/teams/:id', (req, res) => {
+    const team = teams.get(req.params.id);
+    if (!team) return res.status(404).json({ error: 'Team not found' });
+    res.json(team);
+});
+
+app.post('/api/teams', (req, res) => {
+    const { name, ownerId, description } = req.body;
+    const id = Date.now().toString();
+    const team = {
+        id,
+        name,
+        ownerId,
+        description: description || '',
+        avatarUrl: null,
+        bannerUrl: null,
+        socialLinks: {},
+        members: [ownerId],
+        createdAt: new Date()
+    };
+    teams.set(id, team);
+    res.json(team);
+});
+
+app.post('/api/teams/:id/join', (req, res) => {
+    const team = teams.get(req.params.id);
+    const { userId } = req.body;
+    if (!team.members.includes(userId)) {
+        team.members.push(userId);
+        teams.set(req.params.id, team);
     }
-    
-    res.json({ success: true, message: 'Турнирный админ удален' });
+    res.json({ success: true, team });
 });
 
-// Получить список турнирных админов
-app.get('/api/admin/tournament-admins', isAdmin, (req, res) => {
-    const admins = Array.from(TOURNAMENT_ADMINS).map(id => {
-        const user = users.get(id);
-        return user ? { id: user.telegramId, username: user.username } : null;
-    }).filter(a => a);
-    
-    res.json(admins);
+app.put('/api/teams/:id', (req, res) => {
+    const team = teams.get(req.params.id);
+    if (!team) return res.status(404).json({ error: 'Team not found' });
+    Object.assign(team, req.body);
+    teams.set(req.params.id, team);
+    res.json({ success: true, team });
 });
 
-// ==================== ТУРНИРНАЯ АДМИНКА (обновляем эндпоинты) ====================
+// ==================== МАТЧИ ====================
+app.get('/api/matches', (req, res) => {
+    res.json(Array.from(matches.values()));
+});
 
-// Создать турнир (теперь и турнирные админы могут)
-app.post('/api/tournaments', isTournamentAdmin, (req, res) => {
-    const { createdBy, title, description, prizePool, startDate } = req.body;
+app.post('/api/matches', (req, res) => {
+    const { createdBy } = req.body;
+    const match = {
+        id: Date.now().toString(),
+        createdBy,
+        gameCode: null,
+        participants: [createdBy],
+        status: 'waiting',
+        createdAt: new Date()
+    };
+    matches.set(match.id, match);
+    res.json(match);
+});
+
+app.post('/api/matches/:id/join', (req, res) => {
+    const match = matches.get(req.params.id);
+    const { userId } = req.body;
+    if (!match.participants.includes(userId) && match.participants.length < 6) {
+        match.participants.push(userId);
+        if (match.participants.length === 6) match.status = 'ready';
+        matches.set(req.params.id, match);
+    }
+    res.json({ success: true, match });
+});
+
+app.post('/api/matches/:id/code', (req, res) => {
+    const match = matches.get(req.params.id);
+    const { userId, gameCode } = req.body;
+    if (match.createdBy !== userId) {
+        return res.status(403).json({ error: 'Only creator can set code' });
+    }
+    match.gameCode = gameCode;
+    matches.set(req.params.id, match);
+    res.json({ success: true, gameCode });
+});
+
+// ==================== ТУРНИРЫ ====================
+app.get('/api/tournaments', (req, res) => {
+    res.json(Array.from(tournaments.values()));
+});
+
+app.get('/api/tournaments/:id/full', (req, res) => {
+    const tournament = tournaments.get(req.params.id);
+    if (!tournament) return res.status(404).json({ error: 'Tournament not found' });
+    res.json(tournament);
+});
+
+app.post('/api/tournaments', (req, res) => {
+    const { createdBy, title, description, prizePool } = req.body;
     const tournament = {
         id: Date.now().toString(),
         createdBy,
         title,
-        description,
+        description: description || '',
         prizePool: prizePool || '🏆 Победитель получает славу!',
         bannerUrl: null,
         status: 'registration',
-        teams: [], // ID команд
+        teams: [],
         matches: [],
         predictions: [],
-        odds: {}, // Шансы/коэффициенты
-        startDate: startDate || new Date(),
-        registeredPlayers: [],
         createdAt: new Date()
     };
     tournaments.set(tournament.id, tournament);
     res.json(tournament);
 });
 
-// Зарегистрировать команду на турнир (только турнирный админ)
-app.post('/api/tournaments/:id/register-team', isTournamentAdmin, (req, res) => {
+app.post('/api/tournaments/:id/register-team', (req, res) => {
     const tournament = tournaments.get(req.params.id);
     const { teamId } = req.body;
-    
-    if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
-    if (tournament.status !== 'registration') {
-        return res.status(403).json({ error: 'Регистрация на турнир закрыта' });
+    if (!tournament.teams.includes(teamId)) {
+        tournament.teams.push(teamId);
+        tournaments.set(req.params.id, tournament);
     }
-    if (tournament.teams.includes(teamId)) {
-        return res.status(400).json({ error: 'Команда уже зарегистрирована' });
-    }
-    
-    tournament.teams.push(teamId);
-    tournaments.set(req.params.id, tournament);
-    
-    res.json({ success: true, tournament });
+    res.json({ success: true });
 });
 
-// Удалить команду из турнира
-app.post('/api/tournaments/:id/unregister-team', isTournamentAdmin, (req, res) => {
-    const tournament = tournaments.get(req.params.id);
+// ==================== АДМИНКА ====================
+function isAdmin(req, res, next) {
+    const { userId } = req.body;
+    const user = users.get(parseInt(userId));
+    if (!user || user.username !== ADMIN_USERNAME) {
+        return res.status(403).json({ error: 'Доступ только для админа' });
+    }
+    next();
+}
+
+app.get('/api/admin/users', isAdmin, (req, res) => {
+    const allUsers = Array.from(users.values()).map(u => ({
+        telegramId: u.telegramId,
+        username: u.username,
+        isBanned: u.isBanned,
+        createdAt: u.createdAt
+    }));
+    res.json(allUsers);
+});
+
+app.post('/api/admin/ban', isAdmin, (req, res) => {
+    const { targetId, ban } = req.body;
+    const user = users.get(parseInt(targetId));
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    user.isBanned = ban;
+    users.set(user.telegramId, user);
+    res.json({ success: true });
+});
+
+app.post('/api/admin/delete-user', isAdmin, (req, res) => {
+    const { targetId } = req.body;
+    users.delete(parseInt(targetId));
+    res.json({ success: true });
+});
+
+app.get('/api/admin/teams', isAdmin, (req, res) => {
+    res.json(Array.from(teams.values()));
+});
+
+app.post('/api/admin/delete-team', isAdmin, (req, res) => {
     const { teamId } = req.body;
-    
-    tournament.teams = tournament.teams.filter(t => t !== teamId);
-    tournaments.set(req.params.id, tournament);
-    
+    teams.delete(teamId);
     res.json({ success: true });
 });
 
-// Добавить предикт (прогноз) для матча в турнире
-app.post('/api/tournaments/:id/add-prediction', isTournamentAdmin, (req, res) => {
-    const tournament = tournaments.get(req.params.id);
-    const { matchId, team1Odds, team2Odds } = req.body;
-    
-    if (!tournament.predictions) tournament.predictions = [];
-    
-    tournament.predictions.push({
-        matchId,
-        team1Odds,
-        team2Odds,
-        votes: { team1: [], team2: [] },
-        createdAt: new Date()
-    });
-    
-    tournaments.set(req.params.id, tournament);
-    res.json({ success: true, predictions: tournament.predictions });
+app.get('/api/admin/tournaments', isAdmin, (req, res) => {
+    res.json(Array.from(tournaments.values()));
 });
 
-// Обновить коэффициенты (шансы)
-app.post('/api/tournaments/:id/update-odds', isTournamentAdmin, (req, res) => {
-    const tournament = tournaments.get(req.params.id);
-    const { matchId, team1Odds, team2Odds } = req.body;
-    
-    const prediction = tournament.predictions.find(p => p.matchId === matchId);
-    if (prediction) {
-        prediction.team1Odds = team1Odds;
-        prediction.team2Odds = team2Odds;
-        tournaments.set(req.params.id, tournament);
-    }
-    
+app.post('/api/admin/delete-tournament', isAdmin, (req, res) => {
+    const { tournamentId } = req.body;
+    tournaments.delete(tournamentId);
     res.json({ success: true });
 });
 
-// Создать матч в турнире
-app.post('/api/tournaments/:id/create-match', isTournamentAdmin, (req, res) => {
-    const tournament = tournaments.get(req.params.id);
-    const { team1Id, team2Id, round } = req.body;
-    
-    const match = {
-        id: `${req.params.id}_${Date.now()}`,
-        team1: team1Id,
-        team2: team2Id,
-        round: round || 1,
-        status: 'scheduled',
-        score: null,
-        winner: null
-    };
-    
-    if (!tournament.matches) tournament.matches = [];
-    tournament.matches.push(match);
-    tournaments.set(req.params.id, tournament);
-    
-    res.json({ success: true, match });
+app.get('/api/admin/matches', isAdmin, (req, res) => {
+    res.json(Array.from(matches.values()));
 });
 
-// Обновить результат матча
-app.post('/api/tournaments/:id/match-result', isTournamentAdmin, (req, res) => {
-    const tournament = tournaments.get(req.params.id);
-    const { matchId, score, winner } = req.body;
-    
-    const match = tournament.matches.find(m => m.id === matchId);
-    if (match) {
-        match.score = score;
-        match.winner = winner;
-        match.status = 'finished';
-        tournaments.set(req.params.id, tournament);
-    }
-    
+app.post('/api/admin/delete-match', isAdmin, (req, res) => {
+    const { matchId } = req.body;
+    matches.delete(matchId);
     res.json({ success: true });
 });
 
-// Проголосовать за команду (обычные пользователи)
-app.post('/api/tournaments/:id/vote', (req, res) => {
-    const tournament = tournaments.get(req.params.id);
-    const { matchId, team, userId } = req.body;
-    
-    const prediction = tournament.predictions.find(p => p.matchId === matchId);
-    if (!prediction) return res.status(404).json({ error: 'Прогноз не найден' });
-    
-    // Удаляем старый голос если был
-    prediction.votes.team1 = prediction.votes.team1.filter(id => id !== userId);
-    prediction.votes.team2 = prediction.votes.team2.filter(id => id !== userId);
-    
-    // Добавляем новый
-    if (team === 'team1') {
-        prediction.votes.team1.push(userId);
-    } else {
-        prediction.votes.team2.push(userId);
-    }
-    
-    tournaments.set(req.params.id, tournament);
-    res.json({ success: true });
-});
-
-// Получить турнир с полной информацией
-app.get('/api/tournaments/:id/full', (req, res) => {
-    const tournament = tournaments.get(req.params.id);
-    if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
-    
-    // Получаем полную информацию о командах
-    const fullTeams = tournament.teams.map(teamId => {
-        const team = teams.get(teamId);
-        return team ? {
-            id: team.id,
-            name: team.name,
-            avatarUrl: team.avatarUrl,
-            members: team.members
-        } : null;
-    }).filter(t => t);
-    
+app.get('/api/admin/stats', isAdmin, (req, res) => {
     res.json({
-        ...tournament,
-        fullTeams,
-        predictions: tournament.predictions.map(p => ({
-            ...p,
-            votesCount: {
-                team1: p.votes.team1.length,
-                team2: p.votes.team2.length
-            }
-        }))
+        totalUsers: users.size,
+        totalTeams: teams.size,
+        totalMatches: matches.size,
+        totalTournaments: tournaments.size,
+        bannedUsers: Array.from(users.values()).filter(u => u.isBanned).length
     });
+});
+
+app.post('/api/admin/tournament-status', isAdmin, (req, res) => {
+    const { tournamentId, status } = req.body;
+    const tournament = tournaments.get(tournamentId);
+    if (tournament) {
+        tournament.status = status;
+        tournaments.set(tournamentId, tournament);
+    }
+    res.json({ success: true });
+});
+
+// ==================== ЗАПУСК ====================
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Nulls Community API running on port ${PORT}`);
 });
