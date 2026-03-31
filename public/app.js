@@ -9,7 +9,7 @@ tg.ready();
 tg.expand();
 
 // ==================== CLOUDINARY ====================
-const CLOUD_NAME = 'CMNULLS';
+const CLOUD_NAME = 'dew0bxfzo';
 const UPLOAD_PRESET = 'nulls_community';
 
 async function uploadImageToCloudinary(file, type, teamId = null) {
