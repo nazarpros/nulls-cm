@@ -8,7 +8,7 @@ tg.ready();
 tg.expand();
 
 // ==================== ТВОИ ДАННЫЕ CLOUDINARY ====================
-const CLOUD_NAME = 'CMNULLS';  // твой cloud name
+const CLOUD_NAME = 'dew0bxfzo';  // твой cloud name
 const UPLOAD_PRESET = 'nulls_community';  // создадим сейчас
 
 async function uploadImageToCloudinary(file, type) {
