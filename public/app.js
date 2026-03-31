@@ -7,31 +7,31 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// ==================== ЗАГРУЗКА ФОТО ИЗ ГАЛЕРЕИ ====================
+// ==================== ЗАГРУЗКА ФОТО В CLOUDINARY ====================
+const CLOUD_NAME = '939576331756834'; // 👈 ВСТАВЬ СВОЙ CLOUD NAME
+
 async function uploadImageToCloudinary(file, type) {
-    // Сначала показываем, что загрузка идет
     tg.showPopup({
-        title: 'Загрузка',
+        title: '📤 Загрузка',
         message: 'Загружаем изображение...',
         buttons: [{ type: 'ok' }]
     });
     
-    // Используем бесплатный upload сервис (imgbb)
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('file', file);
+    formData.append('upload_preset', 'nulls_community');
     
     try {
-        // Загружаем на imgbb (бесплатно, без регистрации)
-        const response = await fetch('https://api.imgbb.com/1/upload?key=YOUR_IMGBB_API_KEY', {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
             method: 'POST',
             body: formData
         });
         
         const data = await response.json();
-        if (data.success) {
-            const imageUrl = data.data.url;
+        
+        if (data.secure_url) {
+            const imageUrl = data.secure_url;
             
-            // Сохраняем URL в профиль
             const updates = {};
             updates[type === 'avatar' ? 'avatarUrl' : 'bannerUrl'] = imageUrl;
             
@@ -44,7 +44,7 @@ async function uploadImageToCloudinary(file, type) {
             await loadProfile();
             tg.showAlert('✅ Изображение загружено!');
         } else {
-            tg.showAlert('❌ Ошибка загрузки, попробуйте другое фото');
+            tg.showAlert('❌ Ошибка: ' + (data.error?.message || 'неизвестная'));
         }
     } catch (error) {
         console.error('Upload error:', error);
@@ -52,7 +52,6 @@ async function uploadImageToCloudinary(file, type) {
     }
 }
 
-// Выбор фото из галереи
 function selectImage(type) {
     const input = document.createElement('input');
     input.type = 'file';
@@ -74,7 +73,6 @@ async function initAuth() {
         return;
     }
     
-    // Отображаем данные из Telegram сразу
     document.getElementById('username').textContent = user.username || user.first_name;
     if (user.photo_url) {
         document.getElementById('avatar').src = user.photo_url;
@@ -83,7 +81,6 @@ async function initAuth() {
         document.getElementById('avatar').src = `https://ui-avatars.com/api/?name=${initials}&background=667eea&color=fff&size=100`;
     }
     
-    // Отправляем на бекенд
     const response = await fetch('/api/auth/telegram', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -381,4 +378,5 @@ function showTournamentAdminButton() {
     nav.appendChild(btn);
 }
 
+// ЗАПУСК
 initAuth();
