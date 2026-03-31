@@ -187,10 +187,22 @@ h2 {
     text-align: center;
     font-size: 14px;
     backdrop-filter: blur(10px);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.user-team-card:hover {
+    background: rgba(102,126,234,0.25);
+    transform: translateY(-2px);
 }
 
 .user-team-card strong {
     color: #667eea;
+}
+
+.team-link {
+    margin-left: 8px;
+    font-size: 16px;
 }
 
 /* Навигация */
@@ -401,6 +413,17 @@ h2 {
     border-radius: 20px;
 }
 
+.owner-badge {
+    background: linear-gradient(135deg, #ffd700, #ffb347);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    font-weight: bold;
+    color: #1a1f2e;
+    margin-top: 6px;
+    display: inline-block;
+}
+
 /* Детальная страница команды */
 .team-detail {
     position: relative;
@@ -501,6 +524,33 @@ h2 {
     font-size: 14px;
 }
 
+.team-info-row {
+    display: flex;
+    gap: 12px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+}
+
+.team-info-item {
+    flex: 1;
+    background: rgba(30,34,48,0.6);
+    border-radius: 12px;
+    padding: 10px;
+    text-align: center;
+}
+
+.info-label {
+    display: block;
+    font-size: 11px;
+    color: #8e8e9e;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    font-size: 14px;
+    font-weight: 500;
+}
+
 .team-members {
     margin-top: 20px;
     padding: 16px;
@@ -530,25 +580,62 @@ h2 {
     gap: 8px;
 }
 
-.join-team-btn {
+.member-role {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: auto;
+}
+
+.member-role.owner {
+    background: #ffd70020;
+    color: #ffd700;
+}
+
+.member-role.you {
+    background: #667eea20;
+    color: #667eea;
+}
+
+.join-team-btn, .leave-team-btn, .edit-team-btn, .delete-team-btn {
     width: 100%;
-    margin-top: 20px;
+    margin-top: 12px;
     padding: 12px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
     border: none;
     border-radius: 30px;
-    color: white;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.join-team-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+.join-team-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
 }
 
-/* Матчи между командами */
+.leave-team-btn {
+    background: rgba(255,165,0,0.2);
+    color: #ffa500;
+}
+
+.edit-team-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.delete-team-btn {
+    background: rgba(255,59,48,0.2);
+    color: #ff3b30;
+}
+
+.team-admin-actions {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Матчи */
 .match-teams {
     display: flex;
     justify-content: space-between;
@@ -792,6 +879,114 @@ h2 {
 .upload-btn:hover {
     background: rgba(102,126,234,0.3);
     transform: translateY(-1px);
+}
+
+/* Админ панель */
+.admin-panel {
+    padding: 20px;
+}
+
+.admin-panel h2 {
+    margin-bottom: 20px;
+}
+
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-stat-card {
+    background: rgba(30,34,48,0.8);
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.admin-tab {
+    padding: 8px 16px;
+    background: rgba(30,34,48,0.6);
+    border: none;
+    border-radius: 30px;
+    color: #8e8e9e;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.admin-tab.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.admin-user-card, .admin-item-card {
+    background: rgba(30,34,48,0.6);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.user-id, .item-id {
+    font-size: 11px;
+    color: #8e8e9e;
+    margin-left: 8px;
+}
+
+.team-badge {
+    background: rgba(102,126,234,0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    margin-left: 8px;
+}
+
+.user-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+.user-status.active {
+    background: #00c85320;
+    color: #00c853;
+}
+
+.user-status.banned {
+    background: #ff3b3020;
+    color: #ff3b30;
+}
+
+.admin-user-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.small-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    background: #667eea;
+    color: white;
+}
+
+.small-btn.danger {
+    background: #ff3b30;
 }
 
 .hidden {
