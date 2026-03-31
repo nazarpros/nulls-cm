@@ -406,16 +406,6 @@ h2 {
     color: #00c853;
 }
 
-.welcome-message {
-    text-align: center;
-    padding: 40px 20px;
-    color: #8e8e9e;
-    font-size: 14px;
-    background: rgba(30,34,48,0.5);
-    border-radius: 20px;
-    backdrop-filter: blur(10px);
-}
-
 /* Модальное окно */
 .modal {
     position: fixed;
@@ -502,6 +492,26 @@ h2 {
 }
 
 .modal-buttons button:hover {
+    transform: translateY(-1px);
+}
+
+/* Кнопки загрузки */
+.upload-btn {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    background: rgba(102,126,234,0.2);
+    border: 1px solid rgba(102,126,234,0.5);
+    border-radius: 30px;
+    color: #667eea;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.upload-btn:hover {
+    background: rgba(102,126,234,0.3);
     transform: translateY(-1px);
 }
 
