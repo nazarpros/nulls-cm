@@ -8,6 +8,7 @@ body {
     background: #0a0c10;
     color: #e4e6eb;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+    overflow-x: hidden;
 }
 
 /* Анимированный градиентный фон */
@@ -15,12 +16,26 @@ body {
     min-height: 100vh;
     background: linear-gradient(135deg, #0a0c10 0%, #1a1f2e 100%);
     padding-bottom: 80px;
+    position: relative;
+}
+
+.app::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 20% 50%, rgba(102,126,234,0.03) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
 }
 
 /* Шапка профиля */
 .profile-section {
     position: relative;
     margin-bottom: 20px;
+    z-index: 1;
 }
 
 .banner {
@@ -30,6 +45,19 @@ body {
     animation: gradientShift 8s ease infinite;
     border-radius: 0 0 24px 24px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    position: relative;
+    overflow: hidden;
+}
+
+.banner::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);
+    pointer-events: none;
 }
 
 @keyframes gradientShift {
@@ -42,6 +70,7 @@ body {
     position: relative;
     width: 110px;
     margin: -55px auto 0;
+    z-index: 2;
 }
 
 .avatar {
@@ -52,11 +81,12 @@ body {
     object-fit: cover;
     background: linear-gradient(135deg, #667eea, #764ba2);
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .avatar:hover {
     transform: scale(1.02);
+    box-shadow: 0 12px 28px rgba(102,126,234,0.3);
 }
 
 .edit-avatar {
@@ -74,6 +104,7 @@ body {
     cursor: pointer;
     font-size: 14px;
     transition: all 0.2s;
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 .edit-avatar:hover {
@@ -90,6 +121,7 @@ h2 {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
+    letter-spacing: -0.3px;
 }
 
 .description {
@@ -98,6 +130,7 @@ h2 {
     padding: 0 20px;
     margin: 8px 0;
     font-size: 14px;
+    line-height: 1.5;
 }
 
 .links {
@@ -105,6 +138,7 @@ h2 {
     justify-content: center;
     gap: 16px;
     margin: 12px 0;
+    flex-wrap: wrap;
 }
 
 .links a {
@@ -154,6 +188,7 @@ h2 {
     padding: 8px 0 20px;
     border-top: 1px solid rgba(255,255,255,0.05);
     box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+    z-index: 100;
 }
 
 .nav-btn {
@@ -172,11 +207,6 @@ h2 {
     gap: 4px;
 }
 
-.nav-btn::before {
-    font-size: 24px;
-    margin-bottom: 2px;
-}
-
 .nav-btn:hover {
     color: #a0a0ff;
     transform: translateY(-2px);
@@ -193,6 +223,8 @@ h2 {
 .content {
     padding: 20px;
     animation: fadeIn 0.3s ease;
+    position: relative;
+    z-index: 1;
 }
 
 @keyframes fadeIn {
@@ -221,23 +253,26 @@ h2 {
     margin-bottom: 8px;
     font-size: 18px;
     color: #fff;
+    font-weight: 600;
 }
 
 .card p {
     color: #8e8e9e;
     font-size: 14px;
     margin: 8px 0;
+    line-height: 1.5;
 }
 
 .card button {
     margin-top: 12px;
-    padding: 8px 20px;
+    padding: 10px 20px;
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
     border: none;
     border-radius: 30px;
     cursor: pointer;
     font-size: 14px;
+    font-weight: 500;
     transition: all 0.2s;
 }
 
@@ -246,15 +281,150 @@ h2 {
     box-shadow: 0 4px 12px rgba(102,126,234,0.4);
 }
 
-/* Модалка */
+/* Кнопка создания */
+.create-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.create-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.4);
+}
+
+/* Сетка команд */
+.teams-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.team-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.team-avatar {
+    font-size: 48px;
+    margin-bottom: 8px;
+}
+
+.team-stats {
+    font-size: 12px;
+    color: #8e8e9e;
+    margin: 8px 0;
+    padding: 4px 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 20px;
+}
+
+/* Матчи */
+.match-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.match-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.match-status.waiting {
+    background: #ffa50020;
+    color: #ffa500;
+}
+
+.match-status.ready {
+    background: #00c85320;
+    color: #00c853;
+}
+
+.match-players {
+    font-size: 14px;
+    color: #8e8e9e;
+}
+
+.match-code {
+    text-align: center;
+    padding: 12px;
+    background: rgba(102,126,234,0.2);
+    border-radius: 12px;
+    margin: 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.code-btn {
+    background: linear-gradient(135deg, #f093fb, #667eea);
+}
+
+/* Турниры */
+.tournament-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.tournament-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.tournament-status.registration {
+    background: #ffa50020;
+    color: #ffa500;
+}
+
+.tournament-status.ongoing {
+    background: #5e9bff20;
+    color: #5e9bff;
+}
+
+.tournament-status.finished {
+    background: #00c85320;
+    color: #00c853;
+}
+
+.welcome-message {
+    text-align: center;
+    padding: 40px 20px;
+    color: #8e8e9e;
+    font-size: 14px;
+    background: rgba(30,34,48,0.5);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+}
+
+/* Модальное окно */
 .modal {
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.8);
-    backdrop-filter: blur(8px);
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -269,11 +439,14 @@ h2 {
     width: 90%;
     max-width: 320px;
     border: 1px solid rgba(102,126,234,0.3);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
 .modal-content h3 {
     margin-bottom: 16px;
     font-size: 20px;
+    font-weight: 600;
+    color: #fff;
 }
 
 .modal-content input,
@@ -286,12 +459,19 @@ h2 {
     border-radius: 12px;
     color: white;
     font-size: 14px;
+    transition: all 0.2s;
 }
 
 .modal-content input:focus,
 .modal-content textarea:focus {
     outline: none;
     border-color: #667eea;
+    background: #2f3345;
+}
+
+.modal-content input::placeholder,
+.modal-content textarea::placeholder {
+    color: #6b6e7e;
 }
 
 .modal-buttons {
@@ -307,6 +487,8 @@ h2 {
     border-radius: 12px;
     cursor: pointer;
     font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s;
 }
 
 .modal-buttons button:first-child {
@@ -317,6 +499,10 @@ h2 {
 .modal-buttons button:last-child {
     background: #2a2e3e;
     color: #8e8e9e;
+}
+
+.modal-buttons button:hover {
+    transform: translateY(-1px);
 }
 
 .hidden {
@@ -333,8 +519,12 @@ h2 {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #667eea;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #764ba2, #f093fb);
 }
 
 /* Адаптивность */
@@ -355,5 +545,43 @@ h2 {
     
     h2 {
         font-size: 20px;
+    }
+    
+    .nav-btn {
+        font-size: 10px;
+    }
+    
+    .card {
+        padding: 16px;
+    }
+    
+    .create-btn {
+        padding: 12px;
+        font-size: 14px;
+    }
+}
+
+/* Анимации для загрузки */
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+
+.loading {
+    background: linear-gradient(90deg, #1e2230 25%, #2a2e3e 50%, #1e2230 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 12px;
+}
+
+/* Эффект нажатия */
+button:active {
+    transform: scale(0.97);
+}
+
+/* Telegram темы */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: var(--tg-theme-bg-color, #0a0c10);
     }
     }
