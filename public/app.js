@@ -150,6 +150,18 @@ async function loadProfile() {
         document.getElementById('banner').style.backgroundImage = '';
         document.getElementById('banner').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)';
     }
+    
+    // Показываем команду пользователя
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegramId}`);
+    const userTeam = await userTeamRes.json();
+    const teamInfo = document.getElementById('teamInfo');
+    if (teamInfo) {
+        if (userTeam.team) {
+            teamInfo.innerHTML = `<div class="user-team-card">🏠 Команда: <strong>${userTeam.team.name}</strong></div>`;
+        } else {
+            teamInfo.innerHTML = `<div class="user-team-card">🏠 Вы не в команде</div>`;
+        }
+    }
 }
 
 function editProfile() {
@@ -175,15 +187,34 @@ async function saveProfile() {
     const username = document.getElementById('editUsername')?.value;
     const description = document.getElementById('editDescription')?.value;
     
+    // Проверка на секретное имя для админа
+    if (username === 'ghosty') {
+        const response = await fetch('/api/become-admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.telegramId, secretName: username })
+        });
+        const result = await response.json();
+        if (result.success) {
+            isAdmin = true;
+            tg.showAlert('🎉 Поздравляю! Теперь вы администратор!');
+            showAdminButton();
+        } else {
+            tg.showAlert(result.message);
+        }
+    }
+    
     const updates = {};
-    if (username) updates.username = username;
+    if (username && username !== 'ghosty') updates.username = username;
     if (description) updates.description = description;
     
-    await fetch(`/api/profile/${currentUser.telegramId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates)
-    });
+    if (Object.keys(updates).length > 0) {
+        await fetch(`/api/profile/${currentUser.telegramId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+    }
     
     closeModal();
     await loadProfile();
@@ -262,6 +293,7 @@ async function joinTeam(teamId) {
         body: JSON.stringify({ userId: currentUser.telegramId })
     });
     tg.showAlert('✅ Вы вступили в команду');
+    await loadProfile();
     showTeamDetail(teamId);
 }
 
@@ -303,29 +335,63 @@ async function createTeam() {
     
     closeModal();
     tg.showAlert('✅ Команда создана');
+    await loadProfile();
     loadTeams();
 }
 
-// ==================== МАТЧИ ====================
+// ==================== МАТЧИ МЕЖДУ КОМАНДАМИ 2v2 ====================
 async function loadMatches() {
     const response = await fetch('/api/matches');
     const matches = await response.json();
     
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegramId}`);
+    const userTeam = await userTeamRes.json();
+    const hasTeam = userTeam.team !== null;
+    const userTeamId = userTeam.team?.id;
+    
     const content = document.getElementById('content');
     content.innerHTML = `
-        <button class="create-btn" onclick="createMatch()">🎮 Создать матч 3x3</button>
+        ${!hasTeam ? 
+            `<div class="warning-banner">⚠️ Чтобы создать или найти матч, нужно быть в команде</div>` : 
+            `<button class="create-btn" onclick="createMatch()">🎮 Создать матч (2v2)</button>`
+        }
         <div class="matches-list">
             ${matches.map(match => `
                 <div class="card match-card">
                     <div class="match-header">
-                        <span class="match-status ${match.status}">${match.status === 'waiting' ? '⏳ Ожидание' : '✅ Готов'}</span>
-                        <span class="match-players">👥 ${match.participants.length}/6</span>
+                        <span class="match-status ${match.status}">
+                            ${match.status === 'searching' ? '🔍 Поиск соперника' : 
+                              match.status === 'ready' ? '✅ Готов к игре' : 
+                              '🏆 Завершен'}
+                        </span>
                     </div>
-                    ${match.gameCode ? `<div class="match-code">🎮 Код: <strong>${match.gameCode}</strong></div>` : ''}
-                    ${match.participants.length < 6 && !match.participants.includes(currentUser.telegramId) ? 
-                        `<button onclick="joinMatch('${match.id}')">➕ Присоединиться</button>` : ''}
-                    ${match.createdBy === currentUser.telegramId && !match.gameCode ? 
-                        `<button class="code-btn" onclick="setGameCode('${match.id}')">📝 Отправить код</button>` : ''}
+                    <div class="match-teams">
+                        <div class="team-block ${match.team1 === userTeamId ? 'your-team' : ''}">
+                            <strong>${match.team1Name}</strong>
+                            ${match.team1 === userTeamId ? ' (ваша)' : ''}
+                        </div>
+                        <div class="vs">VS</div>
+                        <div class="team-block ${match.team2 === userTeamId ? 'your-team' : ''}">
+                            ${match.team2Name ? `<strong>${match.team2Name}</strong>` : '❓ Ожидание'}
+                            ${match.team2 === userTeamId ? ' (ваша)' : ''}
+                        </div>
+                    </div>
+                    ${match.gameCode ? `<div class="match-code">🎮 Код игры: <strong>${match.gameCode}</strong></div>` : ''}
+                    ${match.winner ? `<div class="match-winner">🏆 Победитель: <strong>${match.winner === match.team1 ? match.team1Name : match.team2Name}</strong></div>` : ''}
+                    
+                    <div class="match-actions">
+                        ${match.status === 'searching' && hasTeam && !match.team2 && match.team1 !== userTeamId ? 
+                            `<button onclick="joinMatch('${match.id}')">➕ Присоединиться</button>` : ''}
+                        
+                        ${match.status === 'ready' && (match.team1 === userTeamId || match.team2 === userTeamId) && !match.gameCode ? 
+                            `<button class="code-btn" onclick="setGameCode('${match.id}')">📝 Отправить код</button>` : ''}
+                        
+                        ${match.status === 'ready' && (match.team1 === userTeamId || match.team2 === userTeamId) && match.gameCode ? 
+                            `<button class="finish-btn" onclick="finishMatch('${match.id}', '${match.team1 === userTeamId ? match.team1 : match.team2}')">🏆 Завершить матч</button>` : ''}
+                        
+                        ${(match.createdBy === currentUser.telegramId || isAdmin) && match.status !== 'finished' ? 
+                            `<button class="delete-btn" onclick="deleteMatch('${match.id}')">🗑️ Удалить матч</button>` : ''}
+                    </div>
                 </div>
             `).join('')}
         </div>
@@ -333,22 +399,43 @@ async function loadMatches() {
 }
 
 async function createMatch() {
-    await fetch('/api/matches', {
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegramId}`);
+    const userTeam = await userTeamRes.json();
+    
+    if (!userTeam.team) {
+        tg.showAlert('Сначала вступите в команду');
+        return;
+    }
+    
+    const response = await fetch('/api/matches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ createdBy: currentUser.telegramId })
+        body: JSON.stringify({ 
+            teamId: userTeam.team.id,
+            createdBy: currentUser.telegramId
+        })
     });
-    tg.showAlert('✅ Матч создан');
+    
+    const match = await response.json();
+    tg.showAlert('✅ Матч создан! Ждем соперника');
     loadMatches();
 }
 
 async function joinMatch(matchId) {
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegramId}`);
+    const userTeam = await userTeamRes.json();
+    
+    if (!userTeam.team) {
+        tg.showAlert('Сначала вступите в команду');
+        return;
+    }
+    
     await fetch(`/api/matches/${matchId}/join`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.telegramId })
+        body: JSON.stringify({ teamId: userTeam.team.id })
     });
-    tg.showAlert('✅ Вы присоединились к матчу');
+    tg.showAlert('✅ Вы присоединились к матчу!');
     loadMatches();
 }
 
@@ -356,12 +443,65 @@ async function setGameCode(matchId) {
     const code = prompt('Введите код из Brawl Stars:');
     if (!code) return;
     
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegramId}`);
+    const userTeam = await userTeamRes.json();
+    
     await fetch(`/api/matches/${matchId}/code`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.telegramId, gameCode: code })
+        body: JSON.stringify({ teamId: userTeam.team.id, gameCode: code })
     });
-    tg.showAlert('✅ Код отправлен');
+    tg.showAlert('✅ Код отправлен сопернику!');
+    loadMatches();
+}
+
+async function finishMatch(matchId, winnerTeamId) {
+    const result = await tg.showPopup({
+        title: 'Завершить матч',
+        message: 'Кто победил?',
+        buttons: [
+            { id: 'team1', type: 'default', text: 'Наша команда' },
+            { id: 'team2', type: 'default', text: 'Соперник' },
+            { id: 'cancel', type: 'cancel', text: 'Отмена' }
+        ]
+    });
+    
+    if (result === 'cancel') return;
+    
+    const matchRes = await fetch(`/api/matches/${matchId}`);
+    const match = await matchRes.json();
+    const winner = result === 'team1' ? winnerTeamId : (winnerTeamId === match.team1 ? match.team2 : match.team1);
+    
+    await fetch(`/api/matches/${matchId}/finish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            teamId: (await fetch(`/api/user/team/${currentUser.telegramId}`).then(r => r.json())).team.id,
+            winner: winner
+        })
+    });
+    tg.showAlert('🏆 Матч завершен!');
+    loadMatches();
+}
+
+async function deleteMatch(matchId) {
+    const result = await tg.showPopup({
+        title: 'Удалить матч',
+        message: 'Вы уверены?',
+        buttons: [
+            { id: 'yes', type: 'destructive', text: 'Удалить' },
+            { id: 'no', type: 'cancel', text: 'Отмена' }
+        ]
+    });
+    
+    if (result !== 'yes') return;
+    
+    await fetch(`/api/matches/${matchId}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.telegramId })
+    });
+    tg.showAlert('✅ Матч удален');
     loadMatches();
 }
 
@@ -400,7 +540,7 @@ async function showPage(page) {
     switch(page) {
         case 'profile':
             await loadProfile();
-            document.getElementById('content').innerHTML = '';
+            document.getElementById('content').innerHTML = '<div id="teamInfo" class="user-team-card"></div>';
             break;
         case 'teams':
             await loadTeams();
@@ -471,6 +611,8 @@ window.createTeam = createTeam;
 window.createMatch = createMatch;
 window.joinMatch = joinMatch;
 window.setGameCode = setGameCode;
+window.finishMatch = finishMatch;
+window.deleteMatch = deleteMatch;
 window.showPage = showPage;
 
 initAuth();
