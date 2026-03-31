@@ -24,7 +24,7 @@ async function uploadImageToCloudinary(file, type, teamId = null) {
     formData.append('upload_preset', UPLOAD_PRESET);
     
     try {
-        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME.toLowerCase()}/image/upload`, {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
             method: 'POST',
             body: formData
         });
@@ -64,7 +64,8 @@ async function uploadImageToCloudinary(file, type, teamId = null) {
             }
             tg.showAlert('✅ Изображение загружено');
         } else {
-            tg.showAlert('❌ Ошибка загрузки: ' + (data.error?.message || 'неизвестная'));
+            console.error('Cloudinary error:', data);
+            tg.showAlert('❌ Ошибка: ' + (data.error?.message || 'проверь настройки'));
         }
     } catch (error) {
         console.error('Upload error:', error);
@@ -117,7 +118,6 @@ async function initAuth() {
     if (isAdmin) showAdminButton();
     if (isTournamentAdmin || isAdmin) showTournamentAdminButton();
     
-    // Назначаем обработчики навигации
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.onclick = () => {
             const page = btn.getAttribute('data-page');
@@ -457,7 +457,7 @@ function showTournamentAdminButton() {
     nav.appendChild(btn);
 }
 
-// Экспорт глобальных функций
+// Глобальные функции
 window.selectImage = selectImage;
 window.editProfile = editProfile;
 window.saveProfile = saveProfile;
