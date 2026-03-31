@@ -35,11 +35,13 @@ async function uploadImageToCloudinary(file, type, teamId = null) {
             const imageUrl = data.secure_url;
             
             if (teamId) {
-                // Обновляем команду
-                const team = await fetch(`/api/teams/${teamId}`).then(r => r.json());
-                const updates = {};
-                updates[type === 'avatar' ? 'avatarUrl' : 'bannerUrl'] = imageUrl;
-                Object.assign(team, updates);
+                const teamRes = await fetch(`/api/teams/${teamId}`);
+                const team = await teamRes.json();
+                if (type === 'avatar') {
+                    team.avatarUrl = imageUrl;
+                } else {
+                    team.bannerUrl = imageUrl;
+                }
                 await fetch(`/api/teams/${teamId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -47,9 +49,12 @@ async function uploadImageToCloudinary(file, type, teamId = null) {
                 });
                 showTeamDetail(teamId);
             } else {
-                // Обновляем профиль
                 const updates = {};
-                updates[type === 'avatar' ? 'avatarUrl' : 'bannerUrl'] = imageUrl;
+                if (type === 'avatar') {
+                    updates.avatarUrl = imageUrl;
+                } else {
+                    updates.bannerUrl = imageUrl;
+                }
                 await fetch(`/api/profile/${currentUser.telegramId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -57,13 +62,13 @@ async function uploadImageToCloudinary(file, type, teamId = null) {
                 });
                 await loadProfile();
             }
-            tg.showAlert('Изображение загружено');
+            tg.showAlert('✅ Изображение загружено');
         } else {
-            tg.showAlert('Ошибка загрузки');
+            tg.showAlert('❌ Ошибка загрузки: ' + (data.error?.message || 'неизвестная'));
         }
     } catch (error) {
         console.error('Upload error:', error);
-        tg.showAlert('Ошибка загрузки');
+        tg.showAlert('❌ Ошибка загрузки');
     }
 }
 
@@ -112,6 +117,14 @@ async function initAuth() {
     if (isAdmin) showAdminButton();
     if (isTournamentAdmin || isAdmin) showTournamentAdminButton();
     
+    // Назначаем обработчики навигации
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.onclick = () => {
+            const page = btn.getAttribute('data-page');
+            if (page) showPage(page);
+        };
+    });
+    
     showPage('profile');
 }
 
@@ -133,6 +146,9 @@ async function loadProfile() {
         document.getElementById('banner').style.backgroundImage = `url(${profile.bannerUrl})`;
         document.getElementById('banner').style.backgroundSize = 'cover';
         document.getElementById('banner').style.backgroundPosition = 'center';
+    } else {
+        document.getElementById('banner').style.backgroundImage = '';
+        document.getElementById('banner').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)';
     }
 }
 
@@ -144,8 +160,8 @@ function editProfile() {
             <h3>Редактировать профиль</h3>
             <input type="text" id="editUsername" placeholder="Имя" value="${currentUser.username || ''}">
             <textarea id="editDescription" placeholder="О себе" rows="3">${currentUser.description || ''}</textarea>
-            <button onclick="selectImage('avatar')" class="upload-btn">Загрузить аватарку</button>
-            <button onclick="selectImage('banner')" class="upload-btn">Загрузить баннер</button>
+            <button class="upload-btn" onclick="selectImage('avatar'); closeModal();">📸 Загрузить аватарку</button>
+            <button class="upload-btn" onclick="selectImage('banner'); closeModal();">🖼️ Загрузить баннер</button>
             <div class="modal-buttons">
                 <button onclick="saveProfile()">Сохранить</button>
                 <button onclick="closeModal()">Отмена</button>
@@ -171,7 +187,7 @@ async function saveProfile() {
     
     closeModal();
     await loadProfile();
-    tg.showAlert('Профиль обновлен');
+    tg.showAlert('✅ Профиль обновлен');
 }
 
 function closeModal() {
@@ -190,7 +206,7 @@ async function loadTeams() {
     
     const content = document.getElementById('content');
     content.innerHTML = `
-        <button class="create-btn" onclick="showCreateTeamModal()">Создать команду</button>
+        <button class="create-btn" onclick="showCreateTeamModal()">➕ Создать команду</button>
         <div class="teams-grid">
             ${teams.map(team => `
                 <div class="card team-card" onclick="showTeamDetail('${team.id}')">
@@ -211,6 +227,7 @@ async function showTeamDetail(teamId) {
     const response = await fetch(`/api/teams/${teamId}`);
     const team = await response.json();
     const isTeamAdmin = team.ownerId === currentUser.telegramId;
+    const isMember = team.members.includes(currentUser.telegramId);
     
     const content = document.getElementById('content');
     content.innerHTML = `
@@ -218,10 +235,10 @@ async function showTeamDetail(teamId) {
         <div class="team-detail">
             <div class="team-banner" style="background-image: url('${team.bannerUrl || ''}'); background-size: cover; background-position: center;">
                 ${!team.bannerUrl ? '<div class="team-banner-placeholder"></div>' : ''}
-                ${isTeamAdmin ? `<button class="edit-banner-btn" onclick="selectImage('banner', '${teamId}')">Изменить баннер</button>` : ''}
+                ${isTeamAdmin ? `<button class="edit-banner-btn" onclick="selectImage('banner', '${teamId}')">✏️ Изменить баннер</button>` : ''}
             </div>
             <div class="team-detail-avatar">
-                ${team.avatarUrl ? `<img src="${team.avatarUrl}" class="team-detail-img">` : '<svg width="80" height="80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>'}
+                ${team.avatarUrl ? `<img src="${team.avatarUrl}" class="team-detail-img">` : '<div class="team-detail-img-placeholder"></div>'}
                 ${isTeamAdmin ? `<button class="edit-avatar-btn" onclick="selectImage('avatar', '${teamId}')">✏️</button>` : ''}
             </div>
             <h2>${team.name}</h2>
@@ -232,7 +249,7 @@ async function showTeamDetail(teamId) {
                     ${team.members.map(memberId => `<div class="member-item">👤 Игрок ${memberId}</div>`).join('')}
                 </div>
             </div>
-            ${!team.members.includes(currentUser.telegramId) && team.members.length < 6 ? 
+            ${!isMember && team.members.length < 6 ? 
                 `<button class="join-team-btn" onclick="joinTeam('${teamId}')">Вступить в команду</button>` : ''}
         </div>
     `;
@@ -244,7 +261,7 @@ async function joinTeam(teamId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.telegramId })
     });
-    tg.showAlert('Вы вступили в команду');
+    tg.showAlert('✅ Вы вступили в команду');
     showTeamDetail(teamId);
 }
 
@@ -285,7 +302,7 @@ async function createTeam() {
     });
     
     closeModal();
-    tg.showAlert('Команда создана');
+    tg.showAlert('✅ Команда создана');
     loadTeams();
 }
 
@@ -296,19 +313,19 @@ async function loadMatches() {
     
     const content = document.getElementById('content');
     content.innerHTML = `
-        <button class="create-btn" onclick="createMatch()">Создать матч 3x3</button>
+        <button class="create-btn" onclick="createMatch()">🎮 Создать матч 3x3</button>
         <div class="matches-list">
             ${matches.map(match => `
                 <div class="card match-card">
                     <div class="match-header">
-                        <span class="match-status ${match.status}">${match.status === 'waiting' ? 'Ожидание' : 'Готов'}</span>
-                        <span class="match-players">${match.participants.length}/6</span>
+                        <span class="match-status ${match.status}">${match.status === 'waiting' ? '⏳ Ожидание' : '✅ Готов'}</span>
+                        <span class="match-players">👥 ${match.participants.length}/6</span>
                     </div>
-                    ${match.gameCode ? `<div class="match-code">Код: <strong>${match.gameCode}</strong></div>` : ''}
+                    ${match.gameCode ? `<div class="match-code">🎮 Код: <strong>${match.gameCode}</strong></div>` : ''}
                     ${match.participants.length < 6 && !match.participants.includes(currentUser.telegramId) ? 
-                        `<button onclick="joinMatch('${match.id}')">Присоединиться</button>` : ''}
+                        `<button onclick="joinMatch('${match.id}')">➕ Присоединиться</button>` : ''}
                     ${match.createdBy === currentUser.telegramId && !match.gameCode ? 
-                        `<button class="code-btn" onclick="setGameCode('${match.id}')">Отправить код</button>` : ''}
+                        `<button class="code-btn" onclick="setGameCode('${match.id}')">📝 Отправить код</button>` : ''}
                 </div>
             `).join('')}
         </div>
@@ -321,7 +338,7 @@ async function createMatch() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ createdBy: currentUser.telegramId })
     });
-    tg.showAlert('Матч создан');
+    tg.showAlert('✅ Матч создан');
     loadMatches();
 }
 
@@ -331,7 +348,7 @@ async function joinMatch(matchId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.telegramId })
     });
-    tg.showAlert('Вы присоединились к матчу');
+    tg.showAlert('✅ Вы присоединились к матчу');
     loadMatches();
 }
 
@@ -344,7 +361,7 @@ async function setGameCode(matchId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: currentUser.telegramId, gameCode: code })
     });
-    tg.showAlert('Код отправлен');
+    tg.showAlert('✅ Код отправлен');
     loadMatches();
 }
 
@@ -358,11 +375,11 @@ async function loadTournaments() {
         <div class="tournaments-list">
             ${tournaments.map(t => `
                 <div class="card tournament-card">
-                    <h3>${t.title}</h3>
+                    <h3>🏆 ${t.title}</h3>
                     <p>${t.description || 'Нет описания'}</p>
                     <div class="tournament-stats">
-                        <span>Команд: ${t.teams.length}</span>
-                        <span class="tournament-status ${t.status}">${t.status === 'registration' ? 'Регистрация' : t.status === 'ongoing' ? 'Идет' : 'Завершен'}</span>
+                        <span>👥 Команд: ${t.teams.length}</span>
+                        <span class="tournament-status ${t.status}">${t.status === 'registration' ? '📝 Регистрация' : t.status === 'ongoing' ? '⚔️ Идет' : '🏆 Завершен'}</span>
                     </div>
                 </div>
             `).join('')}
@@ -372,7 +389,6 @@ async function loadTournaments() {
 
 // ==================== НАВИГАЦИЯ ====================
 async function showPage(page) {
-    // Скрываем профиль на других страницах
     const profileContainer = document.getElementById('profileContainer');
     
     if (page === 'profile') {
@@ -440,5 +456,21 @@ function showTournamentAdminButton() {
     btn.onclick = () => tg.showAlert('Турнирная админка в разработке');
     nav.appendChild(btn);
 }
+
+// Экспорт глобальных функций
+window.selectImage = selectImage;
+window.editProfile = editProfile;
+window.saveProfile = saveProfile;
+window.closeModal = closeModal;
+window.editAvatar = editAvatar;
+window.loadTeams = loadTeams;
+window.showTeamDetail = showTeamDetail;
+window.joinTeam = joinTeam;
+window.showCreateTeamModal = showCreateTeamModal;
+window.createTeam = createTeam;
+window.createMatch = createMatch;
+window.joinMatch = joinMatch;
+window.setGameCode = setGameCode;
+window.showPage = showPage;
 
 initAuth();
