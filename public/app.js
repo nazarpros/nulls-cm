@@ -8,7 +8,7 @@ tg.ready();
 tg.expand();
 
 // ==================== ЗАГРУЗКА ФОТО В CLOUDINARY ====================
-const CLOUD_NAME = '939576331756834'; // 👈 ВСТАВЬ СВОЙ CLOUD NAME
+const CLOUD_NAME = 'CMNULLS'; // 👈 ВСТАВЬ СВОЙ CLOUD NAME
 
 async function uploadImageToCloudinary(file, type) {
     tg.showPopup({
