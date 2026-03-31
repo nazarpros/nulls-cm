@@ -7,6 +7,65 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
+// ==================== ЗАГРУЗКА ФОТО ИЗ ГАЛЕРЕИ ====================
+async function uploadImageToCloudinary(file, type) {
+    // Сначала показываем, что загрузка идет
+    tg.showPopup({
+        title: 'Загрузка',
+        message: 'Загружаем изображение...',
+        buttons: [{ type: 'ok' }]
+    });
+    
+    // Используем бесплатный upload сервис (imgbb)
+    const formData = new FormData();
+    formData.append('image', file);
+    
+    try {
+        // Загружаем на imgbb (бесплатно, без регистрации)
+        const response = await fetch('https://api.imgbb.com/1/upload?key=YOUR_IMGBB_API_KEY', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            const imageUrl = data.data.url;
+            
+            // Сохраняем URL в профиль
+            const updates = {};
+            updates[type === 'avatar' ? 'avatarUrl' : 'bannerUrl'] = imageUrl;
+            
+            await fetch(`/api/profile/${currentUser.telegramId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updates)
+            });
+            
+            await loadProfile();
+            tg.showAlert('✅ Изображение загружено!');
+        } else {
+            tg.showAlert('❌ Ошибка загрузки, попробуйте другое фото');
+        }
+    } catch (error) {
+        console.error('Upload error:', error);
+        tg.showAlert('❌ Ошибка загрузки');
+    }
+}
+
+// Выбор фото из галереи
+function selectImage(type) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            await uploadImageToCloudinary(file, type);
+        }
+    };
+    input.click();
+}
+
 // ==================== АВТОРИЗАЦИЯ ====================
 async function initAuth() {
     const user = tg.initDataUnsafe.user;
@@ -20,7 +79,6 @@ async function initAuth() {
     if (user.photo_url) {
         document.getElementById('avatar').src = user.photo_url;
     } else {
-        // Аватарка по умолчанию с инициалами
         const initials = (user.first_name?.charAt(0) || '') + (user.last_name?.charAt(0) || '');
         document.getElementById('avatar').src = `https://ui-avatars.com/api/?name=${initials}&background=667eea&color=fff&size=100`;
     }
@@ -43,16 +101,10 @@ async function initAuth() {
     isAdmin = data.isAdmin || false;
     isTournamentAdmin = data.isTournamentAdmin || false;
     
-    // Загружаем полный профиль из БД
     await loadProfile();
     
-    // Показываем кнопки для админов
-    if (isAdmin) {
-        showAdminButton();
-    }
-    if (isTournamentAdmin || isAdmin) {
-        showTournamentAdminButton();
-    }
+    if (isAdmin) showAdminButton();
+    if (isTournamentAdmin || isAdmin) showTournamentAdminButton();
     
     showPage('profile');
 }
@@ -78,7 +130,6 @@ async function loadProfile() {
         document.getElementById('banner').style.backgroundPosition = 'center';
     }
     
-    // Отображаем ссылки
     const linksHtml = (profile.links || []).map(link => 
         `<a href="${link.url}" target="_blank">${link.name}</a>`
     ).join('');
@@ -93,8 +144,8 @@ function editProfile() {
             <h3>✏️ Редактировать профиль</h3>
             <input type="text" id="editUsername" placeholder="Имя" value="${currentUser.username || ''}">
             <textarea id="editDescription" placeholder="О себе" rows="3">${currentUser.description || ''}</textarea>
-            <input type="url" id="editAvatarUrl" placeholder="Ссылка на аватарку (URL)">
-            <input type="url" id="editBannerUrl" placeholder="Ссылка на баннер (URL)">
+            <button onclick="selectImage('avatar')" class="upload-btn">📸 Загрузить аватарку</button>
+            <button onclick="selectImage('banner')" class="upload-btn">🖼️ Загрузить баннер</button>
             <div class="modal-buttons">
                 <button onclick="saveProfile()">💾 Сохранить</button>
                 <button onclick="closeModal()">❌ Отмена</button>
@@ -107,14 +158,10 @@ function editProfile() {
 async function saveProfile() {
     const username = document.getElementById('editUsername')?.value;
     const description = document.getElementById('editDescription')?.value;
-    const avatarUrl = document.getElementById('editAvatarUrl')?.value;
-    const bannerUrl = document.getElementById('editBannerUrl')?.value;
     
     const updates = {};
     if (username) updates.username = username;
     if (description) updates.description = description;
-    if (avatarUrl) updates.avatarUrl = avatarUrl;
-    if (bannerUrl) updates.bannerUrl = bannerUrl;
     
     await fetch(`/api/profile/${currentUser.telegramId}`, {
         method: 'PUT',
@@ -125,17 +172,6 @@ async function saveProfile() {
     closeModal();
     await loadProfile();
     tg.showAlert('✅ Профиль обновлен!');
-}
-
-function editAvatar() {
-    const url = prompt('Введите ссылку на аватарку:');
-    if (url) {
-        fetch(`/api/profile/${currentUser.telegramId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ avatarUrl: url })
-        }).then(() => loadProfile());
-    }
 }
 
 function closeModal() {
@@ -304,7 +340,7 @@ async function showPage(page) {
     switch(page) {
         case 'profile':
             await loadProfile();
-            content.innerHTML = '<div class="welcome-message">✨ Ваш профиль отображается выше ✨</div>';
+            content.innerHTML = '';
             break;
         case 'teams':
             await loadTeams();
@@ -317,7 +353,6 @@ async function showPage(page) {
             break;
     }
     
-    // Обновляем активную кнопку
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
         if (btn.textContent.includes(page === 'profile' ? 'Профиль' : 
@@ -346,5 +381,4 @@ function showTournamentAdminButton() {
     nav.appendChild(btn);
 }
 
-// ==================== ЗАПУСК ====================
 initAuth();
