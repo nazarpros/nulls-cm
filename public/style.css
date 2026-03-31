@@ -1,125 +1,359 @@
-/* Турнирная админка */
-.tournament-admin-panel {
-    padding: 20px;
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.create-tournament-btn {
-    width: 100%;
-    padding: 12px;
-    background: var(--tg-theme-button-color, #5e9bff);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    font-size: 16px;
+body {
+    background: #0a0c10;
+    color: #e4e6eb;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
+}
+
+/* Анимированный градиентный фон */
+.app {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0a0c10 0%, #1a1f2e 100%);
+    padding-bottom: 80px;
+}
+
+/* Шапка профиля */
+.profile-section {
+    position: relative;
     margin-bottom: 20px;
-    cursor: pointer;
 }
 
-.tournament-card-admin {
-    background: var(--tg-theme-secondary-bg-color, #2d2d44);
-    border-radius: 12px;
-    padding: 15px;
-    margin-bottom: 12px;
+.banner {
+    height: 180px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 8s ease infinite;
+    border-radius: 0 0 24px 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
 }
 
-.tournament-header {
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.avatar-container {
+    position: relative;
+    width: 110px;
+    margin: -55px auto 0;
+}
+
+.avatar {
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    border: 4px solid #0a0c10;
+    object-fit: cover;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
+}
+
+.avatar:hover {
+    transform: scale(1.02);
+}
+
+.edit-avatar {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 8px;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
 }
 
-.status {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
+.edit-avatar:hover {
+    background: #667eea;
+    transform: scale(1.1);
 }
 
-.status.registration { background: #ffa50020; color: #ffa500; }
-.status.ongoing { background: #5e9bff20; color: #5e9bff; }
-.status.finished { background: #00c85320; color: #00c853; }
-
-.tournament-actions {
-    display: flex;
-    gap: 10px;
+h2 {
+    text-align: center;
     margin-top: 12px;
+    font-size: 24px;
+    font-weight: 600;
+    background: linear-gradient(135deg, #fff, #a0a0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
-.tournament-actions button {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
+.description {
+    text-align: center;
+    color: #8e8e9e;
+    padding: 0 20px;
+    margin: 8px 0;
+    font-size: 14px;
 }
 
-.tournament-manager {
-    padding: 20px;
-}
-
-.back-btn {
-    margin-bottom: 20px;
-    padding: 8px 16px;
-    background: none;
-    border: 1px solid var(--tg-theme-hint-color, #aaa);
-    border-radius: 8px;
-    color: var(--tg-theme-text-color, #fff);
-    cursor: pointer;
-}
-
-.tournament-section {
-    margin: 25px 0;
-    padding: 15px;
-    background: var(--tg-theme-secondary-bg-color, #2d2d44);
-    border-radius: 12px;
-}
-
-.tournament-section h3 {
-    margin-bottom: 15px;
-}
-
-.register-team {
+.links {
     display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+    justify-content: center;
+    gap: 16px;
+    margin: 12px 0;
 }
 
-.register-team select {
-    flex: 1;
-    padding: 10px;
-    background: var(--tg-theme-bg-color, #1a1a2e);
+.links a {
+    color: #667eea;
+    text-decoration: none;
+    font-size: 13px;
+    padding: 6px 12px;
+    background: rgba(102,126,234,0.1);
+    border-radius: 20px;
+    transition: all 0.2s;
+}
+
+.links a:hover {
+    background: rgba(102,126,234,0.2);
+    transform: translateY(-2px);
+}
+
+.edit-profile-btn {
+    display: block;
+    margin: 12px auto;
+    padding: 10px 24px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
     color: white;
-    border: 1px solid rgba(255,255,255,0.2);
-    border-radius: 8px;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
 }
 
-.teams-list, .matches-list, .predictions-list {
+.edit-profile-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102,126,234,0.4);
+}
+
+/* Навигация */
+.nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    background: rgba(10,12,16,0.95);
+    backdrop-filter: blur(20px);
+    padding: 8px 0 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
+}
+
+.nav-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: #8e8e9e;
+    font-size: 12px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.team-item, .match-item, .prediction-item {
-    display: flex;
-    justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    background: var(--tg-theme-bg-color, #1a1a2e);
-    border-radius: 8px;
+    gap: 4px;
 }
 
-.danger-small {
-    background: #ff3b30;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 4px 8px;
-    cursor: pointer;
+.nav-btn::before {
+    font-size: 24px;
+    margin-bottom: 2px;
 }
 
-.odds {
-    display: flex;
-    gap: 15px;
+.nav-btn:hover {
+    color: #a0a0ff;
+    transform: translateY(-2px);
+}
+
+.nav-btn.active {
+    color: #667eea;
+    background: linear-gradient(135deg, #667eea20, #764ba220);
+    border-radius: 30px;
+    margin: 0 8px;
+}
+
+/* Контент */
+.content {
+    padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Карточки */
+.card {
+    background: rgba(30, 34, 48, 0.8);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    background: rgba(40, 44, 60, 0.9);
+    border-color: rgba(102,126,234,0.3);
+}
+
+.card h3 {
+    margin-bottom: 8px;
+    font-size: 18px;
+    color: #fff;
+}
+
+.card p {
+    color: #8e8e9e;
+    font-size: 14px;
     margin: 8px 0;
 }
+
+.card button {
+    margin-top: 12px;
+    padding: 8px 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.card button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102,126,234,0.4);
+}
+
+/* Модалка */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    animation: fadeIn 0.2s ease;
+}
+
+.modal-content {
+    background: #1e2230;
+    padding: 24px;
+    border-radius: 24px;
+    width: 90%;
+    max-width: 320px;
+    border: 1px solid rgba(102,126,234,0.3);
+}
+
+.modal-content h3 {
+    margin-bottom: 16px;
+    font-size: 20px;
+}
+
+.modal-content input,
+.modal-content textarea {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    background: #2a2e3e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    color: white;
+    font-size: 14px;
+}
+
+.modal-content input:focus,
+.modal-content textarea:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.modal-buttons button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.modal-buttons button:first-child {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.modal-buttons button:last-child {
+    background: #2a2e3e;
+    color: #8e8e9e;
+}
+
+.hidden {
+    display: none;
+}
+
+/* Скроллбар */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0a0c10;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 10px;
+}
+
+/* Адаптивность */
+@media (max-width: 480px) {
+    .banner {
+        height: 150px;
+    }
+    
+    .avatar {
+        width: 90px;
+        height: 90px;
+    }
+    
+    .avatar-container {
+        width: 90px;
+        margin-top: -45px;
+    }
+    
+    h2 {
+        font-size: 20px;
+    }
+    }
