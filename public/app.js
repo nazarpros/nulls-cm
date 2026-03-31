@@ -1,9 +1,41 @@
-// Добавляем переменную
+let currentUser = null;
+let currentToken = null;
+let isAdmin = false;
 let isTournamentAdmin = false;
 
-// Обновляем initAuth
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+// ==================== АВТОРИЗАЦИЯ ====================
 async function initAuth() {
-    // ... существующий код ...
+    const user = tg.initDataUnsafe.user;
+    if (!user) {
+        console.log('No Telegram user data');
+        return;
+    }
+    
+    // Отображаем данные из Telegram сразу
+    document.getElementById('username').textContent = user.username || user.first_name;
+    if (user.photo_url) {
+        document.getElementById('avatar').src = user.photo_url;
+    } else {
+        // Аватарка по умолчанию с инициалами
+        const initials = (user.first_name?.charAt(0) || '') + (user.last_name?.charAt(0) || '');
+        document.getElementById('avatar').src = `https://ui-avatars.com/api/?name=${initials}&background=667eea&color=fff&size=100`;
+    }
+    
+    // Отправляем на бекенд
+    const response = await fetch('/api/auth/telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            id: user.id,
+            username: user.username || user.first_name,
+            first_name: user.first_name,
+            photo_url: user.photo_url
+        })
+    });
     
     const data = await response.json();
     currentToken = data.token;
@@ -11,7 +43,10 @@ async function initAuth() {
     isAdmin = data.isAdmin || false;
     isTournamentAdmin = data.isTournamentAdmin || false;
     
-    // Показываем кнопки в зависимости от ролей
+    // Загружаем полный профиль из БД
+    await loadProfile();
+    
+    // Показываем кнопки для админов
     if (isAdmin) {
         showAdminButton();
     }
@@ -22,308 +57,254 @@ async function initAuth() {
     showPage('profile');
 }
 
-// Кнопка турнирной админки
-function showTournamentAdminButton() {
-    const nav = document.querySelector('.nav');
-    const tournamentAdminBtn = document.createElement('button');
-    tournamentAdminBtn.className = 'nav-btn';
-    tournamentAdminBtn.innerHTML = '🎮 ТУРНИРЫ';
-    tournamentAdminBtn.onclick = () => showPage('tournament-admin');
-    nav.appendChild(tournamentAdminBtn);
+// ==================== ПРОФИЛЬ ====================
+async function loadProfile() {
+    if (!currentUser) return;
+    
+    const response = await fetch(`/api/profile/${currentUser.telegramId}`);
+    const profile = await response.json();
+    currentUser = profile;
+    
+    document.getElementById('username').textContent = profile.username;
+    document.getElementById('description').textContent = profile.description || '🎮 Игрок в Brawl Stars';
+    
+    if (profile.avatarUrl) {
+        document.getElementById('avatar').src = profile.avatarUrl;
+    }
+    
+    if (profile.bannerUrl) {
+        document.getElementById('banner').style.backgroundImage = `url(${profile.bannerUrl})`;
+        document.getElementById('banner').style.backgroundSize = 'cover';
+        document.getElementById('banner').style.backgroundPosition = 'center';
+    }
+    
+    // Отображаем ссылки
+    const linksHtml = (profile.links || []).map(link => 
+        `<a href="${link.url}" target="_blank">${link.name}</a>`
+    ).join('');
+    document.getElementById('links').innerHTML = linksHtml;
 }
 
-// Турнирная админ панель
-async function showTournamentAdminPanel() {
-    if (!isTournamentAdmin && !isAdmin) {
-        alert('Доступ только для организаторов турниров');
+function editProfile() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>✏️ Редактировать профиль</h3>
+            <input type="text" id="editUsername" placeholder="Имя" value="${currentUser.username || ''}">
+            <textarea id="editDescription" placeholder="О себе" rows="3">${currentUser.description || ''}</textarea>
+            <input type="url" id="editAvatarUrl" placeholder="Ссылка на аватарку (URL)">
+            <input type="url" id="editBannerUrl" placeholder="Ссылка на баннер (URL)">
+            <div class="modal-buttons">
+                <button onclick="saveProfile()">💾 Сохранить</button>
+                <button onclick="closeModal()">❌ Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function saveProfile() {
+    const username = document.getElementById('editUsername')?.value;
+    const description = document.getElementById('editDescription')?.value;
+    const avatarUrl = document.getElementById('editAvatarUrl')?.value;
+    const bannerUrl = document.getElementById('editBannerUrl')?.value;
+    
+    const updates = {};
+    if (username) updates.username = username;
+    if (description) updates.description = description;
+    if (avatarUrl) updates.avatarUrl = avatarUrl;
+    if (bannerUrl) updates.bannerUrl = bannerUrl;
+    
+    await fetch(`/api/profile/${currentUser.telegramId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+    });
+    
+    closeModal();
+    await loadProfile();
+    tg.showAlert('✅ Профиль обновлен!');
+}
+
+function editAvatar() {
+    const url = prompt('Введите ссылку на аватарку:');
+    if (url) {
+        fetch(`/api/profile/${currentUser.telegramId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ avatarUrl: url })
+        }).then(() => loadProfile());
+    }
+}
+
+function closeModal() {
+    const modal = document.querySelector('.modal');
+    if (modal) modal.remove();
+}
+
+// ==================== КОМАНДЫ ====================
+async function loadTeams() {
+    const response = await fetch('/api/teams');
+    const teams = await response.json();
+    
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <button class="create-btn" onclick="showCreateTeamModal()">➕ Создать команду</button>
+        <div class="teams-grid">
+            ${teams.map(team => `
+                <div class="card team-card">
+                    <div class="team-avatar">👥</div>
+                    <h3>${team.name}</h3>
+                    <p>${team.description || 'Нет описания'}</p>
+                    <div class="team-stats">👥 ${team.members.length}/6 участников</div>
+                    <button onclick="joinTeam('${team.id}')">🚀 Вступить</button>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function showCreateTeamModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>➕ Создать команду</h3>
+            <input type="text" id="teamName" placeholder="Название команды">
+            <textarea id="teamDesc" placeholder="Описание команды" rows="3"></textarea>
+            <div class="modal-buttons">
+                <button onclick="createTeam()">✅ Создать</button>
+                <button onclick="closeModal()">❌ Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function createTeam() {
+    const name = document.getElementById('teamName')?.value;
+    const description = document.getElementById('teamDesc')?.value;
+    
+    if (!name) {
+        tg.showAlert('Введите название команды');
         return;
     }
     
-    const content = document.getElementById('content');
+    await fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name,
+            description,
+            ownerId: currentUser.telegramId
+        })
+    });
     
-    // Получаем список турниров
+    closeModal();
+    tg.showAlert('✅ Команда создана!');
+    loadTeams();
+}
+
+async function joinTeam(teamId) {
+    await fetch(`/api/teams/${teamId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.telegramId })
+    });
+    tg.showAlert('✅ Вы вступили в команду!');
+    loadTeams();
+}
+
+// ==================== МАТЧИ ====================
+async function loadMatches() {
+    const response = await fetch('/api/matches');
+    const matches = await response.json();
+    
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <button class="create-btn" onclick="createMatch()">🎮 Создать матч 3x3</button>
+        <div class="matches-list">
+            ${matches.map(match => `
+                <div class="card match-card">
+                    <div class="match-header">
+                        <span class="match-status ${match.status}">${match.status === 'waiting' ? '⏳ Ожидание' : '✅ Готов'}</span>
+                        <span class="match-players">👥 ${match.participants.length}/6</span>
+                    </div>
+                    ${match.gameCode ? `<div class="match-code">🎮 Код: <strong>${match.gameCode}</strong></div>` : ''}
+                    ${match.participants.length < 6 && !match.participants.includes(currentUser.telegramId) ? 
+                        `<button onclick="joinMatch('${match.id}')">➕ Присоединиться</button>` : ''}
+                    ${match.createdBy === currentUser.telegramId && !match.gameCode ? 
+                        `<button class="code-btn" onclick="setGameCode('${match.id}')">📝 Кинуть код</button>` : ''}
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+async function createMatch() {
+    await fetch('/api/matches', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ createdBy: currentUser.telegramId })
+    });
+    tg.showAlert('✅ Матч создан! Ожидайте игроков');
+    loadMatches();
+}
+
+async function joinMatch(matchId) {
+    await fetch(`/api/matches/${matchId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.telegramId })
+    });
+    tg.showAlert('✅ Вы присоединились к матчу!');
+    loadMatches();
+}
+
+async function setGameCode(matchId) {
+    const code = prompt('Введите код из Brawl Stars:');
+    if (!code) return;
+    
+    await fetch(`/api/matches/${matchId}/code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.telegramId, gameCode: code })
+    });
+    tg.showAlert('✅ Код отправлен участникам!');
+    loadMatches();
+}
+
+// ==================== ТУРНИРЫ ====================
+async function loadTournaments() {
     const response = await fetch('/api/tournaments');
     const tournaments = await response.json();
     
-    content.innerHTML = `
-        <div class="tournament-admin-panel">
-            <h2>🎮 Управление турнирами</h2>
-            
-            <button class="create-tournament-btn" onclick="showCreateTournamentModal()">
-                ➕ Создать новый турнир
-            </button>
-            
-            <div class="tournaments-list-admin">
-                ${tournaments.map(t => `
-                    <div class="tournament-card-admin">
-                        <div class="tournament-header">
-                            <h3>${t.title}</h3>
-                            <span class="status ${t.status}">${getStatusText(t.status)}</span>
-                        </div>
-                        <p>${t.description || 'Нет описания'}</p>
-                        <p>🏆 Приз: ${t.prizePool || 'Не указан'}</p>
-                        <p>👥 Команд: ${t.teams.length}</p>
-                        <div class="tournament-actions">
-                            <button onclick="manageTournament('${t.id}')">📋 Управлять</button>
-                            <button onclick="showTournamentDetails('${t.id}')">👁️ Просмотр</button>
-                            ${isAdmin ? `<button onclick="deleteTournament('${t.id}')" class="danger">🗑️ Удалить</button>` : ''}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-}
-
-// Управление конкретным турниром
-async function manageTournament(tournamentId) {
-    const response = await fetch(`/api/tournaments/${tournamentId}/full`);
-    const tournament = await response.json();
-    
-    // Получаем список всех команд для регистрации
-    const teamsResponse = await fetch('/api/teams');
-    const allTeams = await teamsResponse.json();
-    const availableTeams = allTeams.filter(t => !tournament.teams.includes(t.id));
-    
     const content = document.getElementById('content');
     content.innerHTML = `
-        <div class="tournament-manager">
-            <button onclick="showTournamentAdminPanel()" class="back-btn">← Назад</button>
-            
-            <div class="tournament-info">
-                <h2>${tournament.title}</h2>
-                <p>${tournament.description}</p>
-                <p>🏆 ${tournament.prizePool}</p>
-                <div class="status-control">
-                    <label>Статус турнира:</label>
-                    <select onchange="updateTournamentStatus('${tournament.id}', this.value)">
-                        <option value="registration" ${tournament.status === 'registration' ? 'selected' : ''}>📝 Регистрация</option>
-                        <option value="ongoing" ${tournament.status === 'ongoing' ? 'selected' : ''}>⚔️ Идет</option>
-                        <option value="finished" ${tournament.status === 'finished' ? 'selected' : ''}>🏆 Завершен</option>
-                    </select>
+        <div class="tournaments-list">
+            ${tournaments.map(t => `
+                <div class="card tournament-card">
+                    <h3>🏆 ${t.title}</h3>
+                    <p>${t.description || 'Нет описания'}</p>
+                    <div class="tournament-stats">
+                        <span>👥 Команд: ${t.teams.length}</span>
+                        <span class="tournament-status ${t.status}">${t.status === 'registration' ? '📝 Регистрация' : t.status === 'ongoing' ? '⚔️ Идет' : '🏆 Завершен'}</span>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="tournament-section">
-                <h3>📝 Регистрация команд</h3>
-                <div class="register-team">
-                    <select id="teamSelect">
-                        <option value="">Выберите команду</option>
-                        ${availableTeams.map(t => `
-                            <option value="${t.id}">${t.name} (${t.members.length} игроков)</option>
-                        `).join('')}
-                    </select>
-                    <button onclick="registerTeamToTournament('${tournament.id}')">➕ Зарегистрировать</button>
-                </div>
-                
-                <h4>Зарегистрированные команды:</h4>
-                <div class="teams-list">
-                    ${tournament.fullTeams.map(team => `
-                        <div class="team-item">
-                            <span>${team.name}</span>
-                            <button onclick="unregisterTeam('${tournament.id}', '${team.id}')" class="danger-small">✖️</button>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <div class="tournament-section">
-                <h3>⚔️ Сетка турнира</h3>
-                <button onclick="showCreateMatchModal('${tournament.id}')">➕ Создать матч</button>
-                <div class="matches-list">
-                    ${(tournament.matches || []).map(match => `
-                        <div class="match-item">
-                            <span>${getTeamName(match.team1, allTeams)} vs ${getTeamName(match.team2, allTeams)}</span>
-                            <span>Раунд ${match.round}</span>
-                            ${match.status === 'finished' ? 
-                                `<span>Счет: ${match.score} | Победитель: ${getTeamName(match.winner, allTeams)}</span>` :
-                                `<button onclick="setMatchResult('${tournament.id}', '${match.id}')">📝 Указать результат</button>`
-                            }
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <div class="tournament-section">
-                <h3>🎲 Предикты и шансы</h3>
-                <button onclick="showAddPredictionModal('${tournament.id}')">➕ Добавить прогноз</button>
-                <div class="predictions-list">
-                    ${(tournament.predictions || []).map(p => `
-                        <div class="prediction-item">
-                            <p>Матч #${p.matchId.slice(-6)}</p>
-                            <div class="odds">
-                                <span>Команда 1: ${p.team1Odds || '1.0'}x</span>
-                                <span>Команда 2: ${p.team2Odds || '1.0'}x</span>
-                            </div>
-                            <div class="votes">
-                                <span>Голосов: ${p.votesCount.team1} vs ${p.votesCount.team2}</span>
-                            </div>
-                            <button onclick="editOdds('${tournament.id}', '${p.matchId}')">✏️ Изменить шансы</button>
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
+            `).join('')}
         </div>
     `;
 }
 
-// Функции управления турниром
-window.registerTeamToTournament = async (tournamentId) => {
-    const teamId = document.getElementById('teamSelect').value;
-    if (!teamId) {
-        alert('Выберите команду');
-        return;
-    }
-    
-    await fetch(`/api/tournaments/${tournamentId}/register-team`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            userId: currentUser.telegramId,
-            teamId 
-        })
-    });
-    
-    alert('Команда зарегистрирована!');
-    manageTournament(tournamentId);
-};
-
-window.unregisterTeam = async (tournamentId, teamId) => {
-    if (!confirm('Удалить команду из турнира?')) return;
-    
-    await fetch(`/api/tournaments/${tournamentId}/unregister-team`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            userId: currentUser.telegramId,
-            teamId 
-        })
-    });
-    
-    manageTournament(tournamentId);
-};
-
-window.updateTournamentStatus = async (tournamentId, status) => {
-    await fetch('/api/admin/tournament-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            userId: currentUser.telegramId,
-            tournamentId,
-            status 
-        })
-    });
-    
-    alert('Статус обновлен');
-    manageTournament(tournamentId);
-};
-
-window.showCreateMatchModal = (tournamentId) => {
-    const teams = prompt('Введите ID команд через пробел (сначала первая, потом вторая):\nПример: team123 team456');
-    if (!teams) return;
-    
-    const [team1Id, team2Id] = teams.split(' ');
-    
-    fetch(`/api/tournaments/${tournamentId}/create-match`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            userId: currentUser.telegramId,
-            team1Id,
-            team2Id,
-            round: 1
-        })
-    }).then(() => {
-        alert('Матч создан!');
-        manageTournament(tournamentId);
-    });
-};
-
-window.setMatchResult = async (tournamentId, matchId) => {
-    const score = prompt('Введите счет (например: 2-1):');
-    const winner = prompt('Введите ID команды-победителя:');
-    if (!score || !winner) return;
-    
-    await fetch(`/api/tournaments/${tournamentId}/match-result`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            userId: currentUser.telegramId,
-            matchId,
-            score,
-            winner
-        })
-    });
-    
-    alert('Результат сохранен!');
-    manageTournament(tournamentId);
-};
-
-window.showAddPredictionModal = (tournamentId) => {
-    const matchId = prompt('ID матча:');
-    const team1Odds = prompt('Коэффициент на команду 1 (например: 1.5):');
-    const team2Odds = prompt('Коэффициент на команду 2 (например: 2.0):');
-    
-    if (!matchId || !team1Odds || !team2Odds) return;
-    
-    fetch(`/api/tournaments/${tournamentId}/add-prediction`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            userId: currentUser.telegramId,
-            matchId,
-            team1Odds: parseFloat(team1Odds),
-            team2Odds: parseFloat(team2Odds)
-        })
-    }).then(() => {
-        alert('Прогноз добавлен!');
-        manageTournament(tournamentId);
-    });
-};
-
-window.editOdds = async (tournamentId, matchId) => {
-    const team1Odds = prompt('Новый коэффициент на команду 1:');
-    const team2Odds = prompt('Новый коэффициент на команду 2:');
-    
-    if (!team1Odds || !team2Odds) return;
-    
-    await fetch(`/api/tournaments/${tournamentId}/update-odds`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            userId: currentUser.telegramId,
-            matchId,
-            team1Odds: parseFloat(team1Odds),
-            team2Odds: parseFloat(team2Odds)
-        })
-    });
-    
-    alert('Шансы обновлены!');
-    manageTournament(tournamentId);
-};
-
-function getTeamName(teamId, teams) {
-    const team = teams.find(t => t.id === teamId);
-    return team ? team.name : teamId;
-}
-
-function getStatusText(status) {
-    const statuses = {
-        'registration': '📝 Регистрация',
-        'ongoing': '⚔️ Идет',
-        'finished': '🏆 Завершен'
-    };
-    return statuses[status] || status;
-}
-
-// Обновляем showPage
+// ==================== НАВИГАЦИЯ ====================
 async function showPage(page) {
     const content = document.getElementById('content');
     
     switch(page) {
         case 'profile':
             await loadProfile();
-            content.innerHTML = '<p>👤 Ваш профиль отображается выше</p>';
+            content.innerHTML = '<div class="welcome-message">✨ Ваш профиль отображается выше ✨</div>';
             break;
         case 'teams':
             await loadTeams();
@@ -334,27 +315,36 @@ async function showPage(page) {
         case 'tournaments':
             await loadTournaments();
             break;
-        case 'tournament-admin':
-            if (isTournamentAdmin || isAdmin) {
-                await showTournamentAdminPanel();
-            } else {
-                alert('Доступ только для организаторов турниров');
-            }
-            break;
-        case 'admin':
-            if (isAdmin) {
-                await showAdminPanel();
-            } else {
-                alert('Доступ запрещен');
-            }
-            break;
     }
     
     // Обновляем активную кнопку
     document.querySelectorAll('.nav-btn').forEach(btn => {
         btn.classList.remove('active');
-        if (btn.textContent.includes(page === 'tournament-admin' ? 'ТУРНИРЫ' : page)) {
+        if (btn.textContent.includes(page === 'profile' ? 'Профиль' : 
+            page === 'teams' ? 'Команды' : 
+            page === 'matches' ? 'Матчи' : 'Турниры')) {
             btn.classList.add('active');
         }
     });
-                  }
+}
+
+function showAdminButton() {
+    const nav = document.querySelector('.nav');
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn';
+    btn.innerHTML = '👑 Админ';
+    btn.onclick = () => tg.showAlert('Админ-панель в разработке');
+    nav.appendChild(btn);
+}
+
+function showTournamentAdminButton() {
+    const nav = document.querySelector('.nav');
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn';
+    btn.innerHTML = '🎮 Турниры';
+    btn.onclick = () => tg.showAlert('Турнирная админка в разработке');
+    nav.appendChild(btn);
+}
+
+// ==================== ЗАПУСК ====================
+initAuth();
