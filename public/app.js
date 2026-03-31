@@ -7,8 +7,9 @@ const tg = window.Telegram.WebApp;
 tg.ready();
 tg.expand();
 
-// ==================== ЗАГРУЗКА ФОТО В CLOUDINARY ====================
-const CLOUD_NAME = 'CMNULLS'; // 👈 ВСТАВЬ СВОЙ CLOUD NAME
+// ==================== ТВОИ ДАННЫЕ CLOUDINARY ====================
+const CLOUD_NAME = 'CMNULLS';  // твой cloud name
+const UPLOAD_PRESET = 'nulls_community';  // создадим сейчас
 
 async function uploadImageToCloudinary(file, type) {
     tg.showPopup({
@@ -19,7 +20,7 @@ async function uploadImageToCloudinary(file, type) {
     
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('upload_preset', 'nulls_community');
+    formData.append('upload_preset', UPLOAD_PRESET);
     
     try {
         const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
@@ -44,6 +45,7 @@ async function uploadImageToCloudinary(file, type) {
             await loadProfile();
             tg.showAlert('✅ Изображение загружено!');
         } else {
+            console.error('Cloudinary error:', data);
             tg.showAlert('❌ Ошибка: ' + (data.error?.message || 'неизвестная'));
         }
     } catch (error) {
@@ -378,5 +380,4 @@ function showTournamentAdminButton() {
     nav.appendChild(btn);
 }
 
-// ЗАПУСК
 initAuth();
