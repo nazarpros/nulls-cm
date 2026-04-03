@@ -93,7 +93,7 @@ function selectImage(type, targetId = null, targetType = 'profile') {
     input.click();
 }
 
-// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ====================
 function escapeHtml(text) {
     if (!text) return '';
     return text.replace(/[&<>]/g, function(m) {
@@ -446,7 +446,7 @@ async function createTeam() {
     loadTeams();
 }
 
-// ==================== МАТЧИ (ОБЫЧНЫЕ) ====================
+// ==================== ОБЫЧНЫЕ МАТЧИ 2x2 ====================
 async function loadRegularMatches() {
     const res = await fetch('/api/matches');
     const matches = await res.json();
@@ -587,7 +587,7 @@ async function deleteMatch(matchId) {
     loadRegularMatches();
 }
 
-// ==================== ТУРНИРНЫЕ МАТЧИ ====================
+// ==================== ТУРНИРНЫЕ МАТЧИ (все матчи всех турниров) ====================
 async function loadTournamentMatches() {
     const res = await fetch('/api/tournaments');
     const tournaments = await res.json();
@@ -600,7 +600,7 @@ async function loadTournamentMatches() {
         
         if (fullTournament.matches && fullTournament.matches.length > 0) {
             html += `<div class="tournament-section">
-                <h3>${escapeHtml(tournament.title)}</h3>
+                <h3 onclick="showTournamentDetail('${tournament.id}')" style="cursor:pointer;">${escapeHtml(tournament.title)}</h3>
                 <div class="tournament-matches">`;
             
             for (const match of fullTournament.matches) {
@@ -644,7 +644,7 @@ async function loadTournamentMatches() {
     content.innerHTML = html;
 }
 
-// ==================== ТУРНИРЫ ====================
+// ==================== ТУРНИРЫ (СПИСОК И УПРАВЛЕНИЕ) ====================
 async function loadTournaments() {
     const res = await fetch('/api/tournaments');
     const tournaments = await res.json();
@@ -858,26 +858,53 @@ function showCreateMatchModal(tournamentId) {
     modal.className = 'modal';
     modal.innerHTML = `
         <div class="modal-content">
-            <h3>Создать матч</h3>
-            <input type="text" id="team1Id" placeholder="ID команды 1">
-            <input type="text" id="team2Id" placeholder="ID команды 2">
-            <input type="number" id="matchRound" placeholder="Раунд">
+            <h3>Создать матч в турнире</h3>
+            <select id="team1Select">
+                <option value="">Выберите команду 1</option>
+            </select>
+            <select id="team2Select">
+                <option value="">Выберите команду 2</option>
+            </select>
+            <input type="number" id="matchRound" placeholder="Раунд" value="1">
             <input type="datetime-local" id="predictionDeadline">
             <div class="modal-buttons">
-                <button onclick="createMatchInTournament('${tournamentId}')">Создать</button>
+                <button onclick="createMatchInTournament('${tournamentId}')">Создать матч</button>
                 <button onclick="closeModal()">Отмена</button>
             </div>
         </div>
     `;
     document.body.appendChild(modal);
+    
+    // Загружаем команды турнира
+    fetch(`/api/tournaments/${tournamentId}/full`).then(r => r.json()).then(tournament => {
+        const team1Select = document.getElementById('team1Select');
+        const team2Select = document.getElementById('team2Select');
+        
+        tournament.teams.forEach(teamId => {
+            fetch(`/api/teams/${teamId}`).then(r => r.json()).then(team => {
+                const option1 = document.createElement('option');
+                option1.value = team.id;
+                option1.textContent = team.name;
+                team1Select.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = team.id;
+                option2.textContent = team.name;
+                team2Select.appendChild(option2);
+            });
+        });
+    });
 }
 
 async function createMatchInTournament(tournamentId) {
-    const team1Id = document.getElementById('team1Id')?.value.trim();
-    const team2Id = document.getElementById('team2Id')?.value.trim();
+    const team1Id = document.getElementById('team1Select')?.value;
+    const team2Id = document.getElementById('team2Select')?.value;
     const round = parseInt(document.getElementById('matchRound')?.value) || 1;
     const predictionDeadline = document.getElementById('predictionDeadline')?.value;
-    if (!team1Id || !team2Id) return tg.showAlert('Введите ID команд');
+    
+    if (!team1Id || !team2Id) return tg.showAlert('Выберите обе команды');
+    if (team1Id === team2Id) return tg.showAlert('Команды должны быть разными');
+    
     await fetch(`/api/tournaments/${tournamentId}/create-match`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1158,7 +1185,7 @@ window.loadAdminTournaments = loadAdminTournaments;
 window.banUser = banUser;
 window.deleteUser = deleteUser;
 window.deleteTeamAdmin = deleteTeamAdmin;
-window.deleteMatchAdmin;
+window.deleteMatchAdmin = deleteMatchAdmin;
 window.deleteTournament = deleteTournament;
 window.showTournamentDetail = showTournamentDetail;
 window.showCreateTournamentModal = showCreateTournamentModal;
