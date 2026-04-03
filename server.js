@@ -295,7 +295,7 @@ app.get('/api/search/teams', async (req, res) => {
     res.json(teams);
 });
 
-// ==================== МАТЧИ ====================
+// ==================== МАТЧИ (ОБЫЧНЫЕ) ====================
 app.get('/api/matches', async (req, res) => {
     const matches = (await pool.query('SELECT * FROM matches ORDER BY created_at DESC')).rows;
     res.json(matches);
@@ -420,9 +420,13 @@ app.post('/api/tournaments/:id/create-match', async (req, res) => {
     const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
     if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
     if (tournament.owner_id != userId) return res.status(403).json({ error: 'Только владелец' });
+    
     const team1 = (await pool.query('SELECT name FROM teams WHERE id = $1', [team1Id])).rows[0];
     const team2 = (await pool.query('SELECT name FROM teams WHERE id = $1', [team2Id])).rows[0];
-    await pool.query('INSERT INTO tournament_matches (id, tournament_id, team1_id, team2_id, team1_name, team2_name, round, prediction_deadline) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [matchId, req.params.id, team1Id, team2Id, team1.name, team2.name, round, predictionDeadline || null]);
+    if (!team1 || !team2) return res.status(404).json({ error: 'Команда не найдена' });
+    
+    await pool.query('INSERT INTO tournament_matches (id, tournament_id, team1_id, team2_id, team1_name, team2_name, round, prediction_deadline) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', 
+        [matchId, req.params.id, team1Id, team2Id, team1.name, team2.name, round, predictionDeadline || null]);
     res.json({ success: true, matchId });
 });
 
@@ -431,7 +435,9 @@ app.post('/api/tournaments/:id/update-match-result', async (req, res) => {
     const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
     if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
     if (tournament.owner_id != userId) return res.status(403).json({ error: 'Только владелец' });
+    
     await pool.query('UPDATE tournament_matches SET score = $1, winner_id = $2, status = $3 WHERE id = $4', [score, winnerId, 'finished', matchId]);
+    
     const predictions = (await pool.query('SELECT * FROM predictions WHERE match_id = $1', [matchId])).rows;
     for (const pred of predictions) {
         if (pred.predicted_winner_id === winnerId && pred.points_awarded === 0) {
@@ -448,6 +454,7 @@ app.post('/api/tournaments/:id/predict', async (req, res) => {
     if (!match) return res.status(404).json({ error: 'Матч не найден' });
     if (match.status === 'finished') return res.status(400).json({ error: 'Матч уже завершён' });
     if (match.prediction_deadline && new Date() > new Date(match.prediction_deadline)) return res.status(400).json({ error: 'Время для прогнозов истекло' });
+    
     const existing = (await pool.query('SELECT * FROM predictions WHERE match_id = $1 AND user_id = $2', [matchId, userId])).rows[0];
     if (existing) {
         await pool.query('UPDATE predictions SET predicted_winner_id = $1 WHERE id = $2', [predictedWinnerId, existing.id]);
