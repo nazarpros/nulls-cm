@@ -185,7 +185,7 @@ app.post('/api/teams/:id/join', async (req, res) => {
         
         if (!team) return res.status(404).json({ error: 'Команда не найдена' });
         if (team.members.includes(userId.toString())) return res.status(400).json({ error: 'Вы уже в команде' });
-        if (team.members.length >= 6) return res.status(400).json({ error: 'Команда полная' });
+        if (team.members.length >= 10) return res.status(400).json({ error: 'Команда полная' });
         
         team.members.push(userId.toString());
         await pool.query('UPDATE teams SET members = $1 WHERE id = $2', [team.members, req.params.id]);
