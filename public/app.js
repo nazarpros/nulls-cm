@@ -587,64 +587,7 @@ async function deleteMatch(matchId) {
     loadRegularMatches();
 }
 
-// ==================== ТУРНИРНЫЕ МАТЧИ (все матчи всех турниров) ====================
-async function loadTournamentMatches() {
-    const res = await fetch('/api/tournaments');
-    const tournaments = await res.json();
-    const content = document.getElementById('content');
-    
-    let html = `<div class="tournament-matches-list">`;
-    
-    for (const tournament of tournaments) {
-        const fullTournament = await fetch(`/api/tournaments/${tournament.id}/full`).then(r => r.json());
-        
-        if (fullTournament.matches && fullTournament.matches.length > 0) {
-            html += `<div class="tournament-section">
-                <h3 onclick="showTournamentDetail('${tournament.id}')" style="cursor:pointer;">${escapeHtml(tournament.title)}</h3>
-                <div class="tournament-matches">`;
-            
-            for (const match of fullTournament.matches) {
-                const canPredict = match.status !== 'finished' && (!match.prediction_deadline || new Date() < new Date(match.prediction_deadline));
-                const myPrediction = match.predictions?.find(p => p.user_id == currentUser.telegram_id);
-                
-                html += `
-                    <div class="card tournament-match-card">
-                        <div class="match-header">
-                            <div class="match-teams">
-                                <span class="team ${match.winner_id === match.team1_id ? 'winner' : ''}">${escapeHtml(match.team1_name)}</span>
-                                <span class="vs">VS</span>
-                                <span class="team ${match.winner_id === match.team2_id ? 'winner' : ''}">${escapeHtml(match.team2_name)}</span>
-                            </div>
-                            ${match.score ? `<div class="match-score">Счёт: ${match.score}</div>` : ''}
-                            ${match.prediction_deadline ? `<div class="prediction-deadline">Прогнозы до: ${new Date(match.prediction_deadline).toLocaleString()}</div>` : ''}
-                        </div>
-                        <div class="predictions-stats">
-                            <span>Прогнозы: ${match.team1Votes || 0} vs ${match.team2Votes || 0}</span>
-                        </div>
-                        ${canPredict ? `
-                            <div class="predict-actions">
-                                <button onclick="makePrediction('${tournament.id}', '${match.id}', '${match.team1_id}')" class="predict-btn">${escapeHtml(match.team1_name)}</button>
-                                <button onclick="makePrediction('${tournament.id}', '${match.id}', '${match.team2_id}')" class="predict-btn">${escapeHtml(match.team2_name)}</button>
-                            </div>
-                        ` : ''}
-                        ${myPrediction ? `<div class="my-prediction">Ваш прогноз: ${myPrediction.predicted_winner_id === match.team1_id ? match.team1_name : match.team2_name} ${myPrediction.points_awarded ? `(+${myPrediction.points_awarded} очков)` : ''}</div>` : ''}
-                    </div>
-                `;
-            }
-            
-            html += `</div></div>`;
-        }
-    }
-    
-    if (!tournaments.some(t => t.matches?.length > 0)) {
-        html += `<div class="card">Нет активных турнирных матчей</div>`;
-    }
-    
-    html += `</div>`;
-    content.innerHTML = html;
-}
-
-// ==================== ТУРНИРЫ (СПИСОК И УПРАВЛЕНИЕ) ====================
+// ==================== ТУРНИРЫ (СПИСОК + МАТЧИ ВНУТРИ) ====================
 async function loadTournaments() {
     const res = await fetch('/api/tournaments');
     const tournaments = await res.json();
@@ -763,7 +706,7 @@ async function showTournamentDetail(tournamentId) {
                     ${myPrediction ? `<div class="my-prediction">Ваш прогноз: ${myPrediction.predicted_winner_id === match.team1_id ? match.team1_name : match.team2_name} ${myPrediction.points_awarded ? `(+${myPrediction.points_awarded} очков)` : ''}</div>` : ''}
                     ${isOwner && match.status !== 'finished' ? `
                         <div class="match-admin">
-                            <button onclick="setMatchResult('${tournamentId}', '${match.id}')">Указать результат</button>
+                            <button onclick="showSetResultModal('${tournamentId}', '${match.id}', '${match.team1_id}', '${match.team2_id}', '${escapeHtml(match.team1_name)}', '${escapeHtml(match.team2_name)}')">Указать результат</button>
                         </div>
                     ` : ''}
                 </div>
@@ -875,7 +818,6 @@ function showCreateMatchModal(tournamentId) {
     `;
     document.body.appendChild(modal);
     
-    // Загружаем команды турнира
     fetch(`/api/tournaments/${tournamentId}/full`).then(r => r.json()).then(tournament => {
         const team1Select = document.getElementById('team1Select');
         const team2Select = document.getElementById('team2Select');
@@ -925,16 +867,40 @@ async function changeTournamentStatus(tournamentId, status) {
     showTournamentDetail(tournamentId);
 }
 
+function showSetResultModal(tournamentId, matchId, team1Id, team2Id, team1Name, team2Name) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Указать результат матча</h3>
+            <input type="text" id="matchScore" placeholder="Счёт (например: 2:1)">
+            <select id="winnerSelect">
+                <option value="">Выберите победителя</option>
+                <option value="${team1Id}">${team1Name}</option>
+                <option value="${team2Id}">${team2Name}</option>
+            </select>
+            <div class="modal-buttons">
+                <button onclick="setMatchResult('${tournamentId}', '${matchId}')">Сохранить</button>
+                <button onclick="closeModal()">Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
 async function setMatchResult(tournamentId, matchId) {
-    const score = prompt('Введите счёт (например: 2:1)');
-    if (!score) return;
-    const winner = prompt('Введите ID команды-победителя');
-    if (!winner) return;
+    const score = document.getElementById('matchScore')?.value.trim();
+    const winnerId = document.getElementById('winnerSelect')?.value;
+    
+    if (!score) return tg.showAlert('Введите счёт');
+    if (!winnerId) return tg.showAlert('Выберите победителя');
+    
     await fetch(`/api/tournaments/${tournamentId}/update-match-result`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ matchId, score, winnerId: winner, userId: currentUser.telegram_id })
+        body: JSON.stringify({ matchId, score, winnerId, userId: currentUser.telegram_id })
     });
+    closeModal();
     tg.showAlert('Результат сохранён, очки начислены');
     showTournamentDetail(tournamentId);
 }
@@ -1124,9 +1090,6 @@ async function showPage(page) {
         case 'regular-matches':
             await loadRegularMatches();
             break;
-        case 'tournament-matches':
-            await loadTournamentMatches();
-            break;
         case 'tournaments':
             await loadTournaments();
             break;
@@ -1194,10 +1157,10 @@ window.showRegisterTeamModal = showRegisterTeamModal;
 window.showCreateMatchModal = showCreateMatchModal;
 window.createMatchInTournament = createMatchInTournament;
 window.changeTournamentStatus = changeTournamentStatus;
+window.showSetResultModal = showSetResultModal;
 window.setMatchResult = setMatchResult;
 window.makePrediction = makePrediction;
 window.showLeaderboard = showLeaderboard;
 window.loadRegularMatches = loadRegularMatches;
-window.loadTournamentMatches = loadTournamentMatches;
 
 initAuth();
