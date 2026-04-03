@@ -59,11 +59,7 @@ async function initDB() {
                 banner_url TEXT,
                 status TEXT DEFAULT 'registration',
                 teams TEXT[],
-                owner_id BIGINT,
                 created_by BIGINT,
-                prize_pool TEXT,
-                start_date TIMESTAMP,
-                end_date TIMESTAMP,
                 created_at TIMESTAMP DEFAULT NOW()
             );
             
@@ -92,7 +88,9 @@ async function initDB() {
             );
         `);
         
+        // Добавляем недостающие колонки
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS prediction_points INTEGER DEFAULT 0;`);
+        await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS owner_id BIGINT;`);
         await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS prize_pool TEXT;`);
         await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS start_date TIMESTAMP;`);
         await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS end_date TIMESTAMP;`);
