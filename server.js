@@ -142,7 +142,14 @@ app.post('/api/become-admin', async (req, res) => {
 app.get('/api/profile/:id', async (req, res) => {
     const user = (await pool.query('SELECT * FROM users WHERE telegram_id = $1', [req.params.id])).rows[0];
     if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json(user);
+    
+    // Получаем команду пользователя
+    let team = null;
+    if (user.team_id) {
+        team = (await pool.query('SELECT id, name, avatar_url FROM teams WHERE id = $1', [user.team_id])).rows[0];
+    }
+    
+    res.json({ ...user, team });
 });
 
 app.put('/api/profile/:id', async (req, res) => {
@@ -163,7 +170,15 @@ app.get('/api/teams', async (req, res) => {
 app.get('/api/teams/:id', async (req, res) => {
     const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [req.params.id])).rows[0];
     if (!team) return res.status(404).json({ error: 'Team not found' });
-    res.json(team);
+    
+    // Получаем полную информацию о членах команды
+    const membersWithInfo = [];
+    for (const memberId of team.members || []) {
+        const user = (await pool.query('SELECT telegram_id, username, avatar_url FROM users WHERE telegram_id = $1', [memberId])).rows[0];
+        if (user) membersWithInfo.push(user);
+    }
+    
+    res.json({ ...team, membersInfo: membersWithInfo });
 });
 
 app.post('/api/teams', async (req, res) => {
@@ -339,6 +354,23 @@ app.get('/api/tournaments', async (req, res) => {
     res.json(tournaments);
 });
 
+app.put('/api/tournaments/:id', async (req, res) => {
+    const { banner_url, avatar_url } = req.body;
+    const updates = [];
+    const values = [];
+    if (banner_url !== undefined) {
+        updates.push(`banner_url = $${values.length + 1}`);
+        values.push(banner_url);
+    }
+    if (avatar_url !== undefined) {
+        updates.push(`avatar_url = $${values.length + 1}`);
+        values.push(avatar_url);
+    }
+    values.push(req.params.id);
+    await pool.query(`UPDATE tournaments SET ${updates.join(', ')} WHERE id = $${values.length}`, values);
+    res.json({ success: true });
+});
+
 app.get('/api/tournaments/:id/full', async (req, res) => {
     const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
     if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
@@ -355,29 +387,18 @@ app.get('/api/tournaments/:id/full', async (req, res) => {
 });
 
 app.post('/api/tournaments', async (req, res) => {
-    const { createdBy, title, description, prizePool, banner_url, avatar_url } = req.body;
+    const { createdBy, title, description, prizePool } = req.body;
     const id = Date.now().toString();
-    // Временно отключаем проверку прав для теста
-    // const user = (await pool.query('SELECT is_admin, is_tournament_admin FROM users WHERE telegram_id = $1', [createdBy])).rows[0];
-    // if (!user?.is_admin && !user?.is_tournament_admin) return res.status(403).json({ error: 'Нет прав' });
-    
-    await pool.query(`INSERT INTO tournaments (id, title, description, status, teams, created_by, owner_id, prize_pool, banner_url, avatar_url) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`, 
-        [id, title, description || '', 'registration', [], createdBy, createdBy, prizePool || null, banner_url || null, avatar_url || null]);
-    res.json({ id, title, description, status: 'registration', teams: [], prizePool, banner_url, avatar_url });
-});
-
-app.put('/api/tournaments/:id', async (req, res) => {
-    const { banner_url, avatar_url } = req.body;
-    await pool.query('UPDATE tournaments SET banner_url = COALESCE($1, banner_url), avatar_url = COALESCE($2, avatar_url) WHERE id = $3', [banner_url, avatar_url, req.params.id]);
-    res.json({ success: true });
+    await pool.query(`INSERT INTO tournaments (id, title, description, status, teams, created_by, owner_id, prize_pool) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, 
+        [id, title, description || '', 'registration', [], createdBy, createdBy, prizePool || null]);
+    res.json({ id, title, description, status: 'registration', teams: [], prizePool });
 });
 
 app.post('/api/tournaments/:id/status', async (req, res) => {
     const { status, userId } = req.body;
     const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
     if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
-    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
-    if (tournament.owner_id != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    if (tournament.owner_id != userId) return res.status(403).json({ error: 'Только владелец' });
     await pool.query('UPDATE tournaments SET status = $1 WHERE id = $2', [status, req.params.id]);
     res.json({ success: true });
 });
@@ -387,8 +408,7 @@ app.post('/api/tournaments/:id/register-team', async (req, res) => {
     const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
     if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
     if (tournament.status !== 'registration') return res.status(400).json({ error: 'Регистрация закрыта' });
-    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
-    if (tournament.owner_id != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    if (tournament.owner_id != userId) return res.status(403).json({ error: 'Только владелец' });
     if (!tournament.teams.includes(teamId)) {
         tournament.teams.push(teamId);
         await pool.query('UPDATE tournaments SET teams = $1 WHERE id = $2', [tournament.teams, req.params.id]);
@@ -401,8 +421,7 @@ app.post('/api/tournaments/:id/create-match', async (req, res) => {
     const matchId = `${req.params.id}_${Date.now()}`;
     const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
     if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
-    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
-    if (tournament.owner_id != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    if (tournament.owner_id != userId) return res.status(403).json({ error: 'Только владелец' });
     const team1 = (await pool.query('SELECT name FROM teams WHERE id = $1', [team1Id])).rows[0];
     const team2 = (await pool.query('SELECT name FROM teams WHERE id = $1', [team2Id])).rows[0];
     await pool.query('INSERT INTO tournament_matches (id, tournament_id, team1_id, team2_id, team1_name, team2_name, round, prediction_deadline) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [matchId, req.params.id, team1Id, team2Id, team1.name, team2.name, round, predictionDeadline || null]);
@@ -413,8 +432,7 @@ app.post('/api/tournaments/:id/update-match-result', async (req, res) => {
     const { matchId, score, winnerId, userId } = req.body;
     const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
     if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
-    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
-    if (tournament.owner_id != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    if (tournament.owner_id != userId) return res.status(403).json({ error: 'Только владелец' });
     await pool.query('UPDATE tournament_matches SET score = $1, winner_id = $2, status = $3 WHERE id = $4', [score, winnerId, 'finished', matchId]);
     const predictions = (await pool.query('SELECT * FROM predictions WHERE match_id = $1', [matchId])).rows;
     for (const pred of predictions) {
