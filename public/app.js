@@ -1158,4 +1158,19 @@ window.loadAdminTournaments = loadAdminTournaments;
 window.banUser = banUser;
 window.deleteUser = deleteUser;
 window.deleteTeamAdmin = deleteTeamAdmin;
-window.deleteMat
+window.deleteMatchAdmin;
+window.deleteTournament = deleteTournament;
+window.showTournamentDetail = showTournamentDetail;
+window.showCreateTournamentModal = showCreateTournamentModal;
+window.createTournament = createTournament;
+window.showRegisterTeamModal = showRegisterTeamModal;
+window.showCreateMatchModal = showCreateMatchModal;
+window.createMatchInTournament = createMatchInTournament;
+window.changeTournamentStatus = changeTournamentStatus;
+window.setMatchResult = setMatchResult;
+window.makePrediction = makePrediction;
+window.showLeaderboard = showLeaderboard;
+window.loadRegularMatches = loadRegularMatches;
+window.loadTournamentMatches = loadTournamentMatches;
+
+initAuth();
