@@ -446,8 +446,8 @@ async function createTeam() {
     loadTeams();
 }
 
-// ==================== МАТЧИ ====================
-async function loadMatches() {
+// ==================== МАТЧИ (ОБЫЧНЫЕ) ====================
+async function loadRegularMatches() {
     const res = await fetch('/api/matches');
     const matches = await res.json();
     const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
@@ -523,7 +523,7 @@ async function createMatch() {
         body: JSON.stringify({ teamId: userTeam.team.id, createdBy: currentUser.telegram_id })
     });
     tg.showAlert('Матч создан, ждём соперника');
-    loadMatches();
+    loadRegularMatches();
 }
 
 async function joinMatch(matchId) {
@@ -539,7 +539,7 @@ async function joinMatch(matchId) {
         body: JSON.stringify({ teamId: userTeam.team.id })
     });
     tg.showAlert('Вы присоединились к матчу');
-    loadMatches();
+    loadRegularMatches();
 }
 
 async function setGameCode(matchId) {
@@ -551,7 +551,7 @@ async function setGameCode(matchId) {
         body: JSON.stringify({ gameCode: code })
     });
     tg.showAlert('Код отправлен');
-    loadMatches();
+    loadRegularMatches();
 }
 
 async function finishMatch(matchId) {
@@ -573,7 +573,7 @@ async function finishMatch(matchId) {
         body: JSON.stringify({ winner })
     });
     tg.showAlert('Матч завершён');
-    loadMatches();
+    loadRegularMatches();
 }
 
 async function deleteMatch(matchId) {
@@ -584,7 +584,64 @@ async function deleteMatch(matchId) {
         body: JSON.stringify({ userId: currentUser.telegram_id })
     });
     tg.showAlert('Матч удалён');
-    loadMatches();
+    loadRegularMatches();
+}
+
+// ==================== ТУРНИРНЫЕ МАТЧИ ====================
+async function loadTournamentMatches() {
+    const res = await fetch('/api/tournaments');
+    const tournaments = await res.json();
+    const content = document.getElementById('content');
+    
+    let html = `<div class="tournament-matches-list">`;
+    
+    for (const tournament of tournaments) {
+        const fullTournament = await fetch(`/api/tournaments/${tournament.id}/full`).then(r => r.json());
+        
+        if (fullTournament.matches && fullTournament.matches.length > 0) {
+            html += `<div class="tournament-section">
+                <h3>${escapeHtml(tournament.title)}</h3>
+                <div class="tournament-matches">`;
+            
+            for (const match of fullTournament.matches) {
+                const canPredict = match.status !== 'finished' && (!match.prediction_deadline || new Date() < new Date(match.prediction_deadline));
+                const myPrediction = match.predictions?.find(p => p.user_id == currentUser.telegram_id);
+                
+                html += `
+                    <div class="card tournament-match-card">
+                        <div class="match-header">
+                            <div class="match-teams">
+                                <span class="team ${match.winner_id === match.team1_id ? 'winner' : ''}">${escapeHtml(match.team1_name)}</span>
+                                <span class="vs">VS</span>
+                                <span class="team ${match.winner_id === match.team2_id ? 'winner' : ''}">${escapeHtml(match.team2_name)}</span>
+                            </div>
+                            ${match.score ? `<div class="match-score">Счёт: ${match.score}</div>` : ''}
+                            ${match.prediction_deadline ? `<div class="prediction-deadline">Прогнозы до: ${new Date(match.prediction_deadline).toLocaleString()}</div>` : ''}
+                        </div>
+                        <div class="predictions-stats">
+                            <span>Прогнозы: ${match.team1Votes || 0} vs ${match.team2Votes || 0}</span>
+                        </div>
+                        ${canPredict ? `
+                            <div class="predict-actions">
+                                <button onclick="makePrediction('${tournament.id}', '${match.id}', '${match.team1_id}')" class="predict-btn">${escapeHtml(match.team1_name)}</button>
+                                <button onclick="makePrediction('${tournament.id}', '${match.id}', '${match.team2_id}')" class="predict-btn">${escapeHtml(match.team2_name)}</button>
+                            </div>
+                        ` : ''}
+                        ${myPrediction ? `<div class="my-prediction">Ваш прогноз: ${myPrediction.predicted_winner_id === match.team1_id ? match.team1_name : match.team2_name} ${myPrediction.points_awarded ? `(+${myPrediction.points_awarded} очков)` : ''}</div>` : ''}
+                    </div>
+                `;
+            }
+            
+            html += `</div></div>`;
+        }
+    }
+    
+    if (!tournaments.some(t => t.matches?.length > 0)) {
+        html += `<div class="card">Нет активных турнирных матчей</div>`;
+    }
+    
+    html += `</div>`;
+    content.innerHTML = html;
 }
 
 // ==================== ТУРНИРЫ ====================
@@ -1037,8 +1094,11 @@ async function showPage(page) {
         case 'teams':
             await loadTeams();
             break;
-        case 'matches':
-            await loadMatches();
+        case 'regular-matches':
+            await loadRegularMatches();
+            break;
+        case 'tournament-matches':
+            await loadTournamentMatches();
             break;
         case 'tournaments':
             await loadTournaments();
@@ -1098,17 +1158,4 @@ window.loadAdminTournaments = loadAdminTournaments;
 window.banUser = banUser;
 window.deleteUser = deleteUser;
 window.deleteTeamAdmin = deleteTeamAdmin;
-window.deleteMatchAdmin = deleteMatchAdmin;
-window.deleteTournament = deleteTournament;
-window.showTournamentDetail = showTournamentDetail;
-window.showCreateTournamentModal = showCreateTournamentModal;
-window.createTournament = createTournament;
-window.showRegisterTeamModal = showRegisterTeamModal;
-window.showCreateMatchModal = showCreateMatchModal;
-window.createMatchInTournament = createMatchInTournament;
-window.changeTournamentStatus = changeTournamentStatus;
-window.setMatchResult = setMatchResult;
-window.makePrediction = makePrediction;
-window.showLeaderboard = showLeaderboard;
-
-initAuth();
+window.deleteMat
