@@ -96,8 +96,6 @@ async function initDB() {
         `);
         
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS prediction_points INTEGER DEFAULT 0;`);
-        await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS banner_url TEXT;`);
-        await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS avatar_url TEXT;`);
         
         console.log('✅ Database initialized');
     } catch (err) {
@@ -132,7 +130,7 @@ app.post('/api/become-admin', async (req, res) => {
     const { userId, secretName } = req.body;
     if (secretName === 'ghosty') {
         await pool.query('UPDATE users SET is_admin = true WHERE telegram_id = $1', [userId]);
-        res.json({ success: true, message: 'Теперь вы админ!' });
+        res.json({ success: true, message: 'Теперь вы администратор' });
     } else {
         res.json({ success: false, message: 'Неверное имя' });
     }
@@ -143,7 +141,6 @@ app.get('/api/profile/:id', async (req, res) => {
     const user = (await pool.query('SELECT * FROM users WHERE telegram_id = $1', [req.params.id])).rows[0];
     if (!user) return res.status(404).json({ error: 'User not found' });
     
-    // Получаем команду пользователя
     let team = null;
     if (user.team_id) {
         team = (await pool.query('SELECT id, name, avatar_url FROM teams WHERE id = $1', [user.team_id])).rows[0];
@@ -171,7 +168,6 @@ app.get('/api/teams/:id', async (req, res) => {
     const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [req.params.id])).rows[0];
     if (!team) return res.status(404).json({ error: 'Team not found' });
     
-    // Получаем полную информацию о членах команды
     const membersWithInfo = [];
     for (const memberId of team.members || []) {
         const user = (await pool.query('SELECT telegram_id, username, avatar_url FROM users WHERE telegram_id = $1', [memberId])).rows[0];
@@ -367,7 +363,9 @@ app.put('/api/tournaments/:id', async (req, res) => {
         values.push(avatar_url);
     }
     values.push(req.params.id);
-    await pool.query(`UPDATE tournaments SET ${updates.join(', ')} WHERE id = $${values.length}`, values);
+    if (updates.length > 0) {
+        await pool.query(`UPDATE tournaments SET ${updates.join(', ')} WHERE id = $${values.length}`, values);
+    }
     res.json({ success: true });
 });
 
@@ -437,8 +435,8 @@ app.post('/api/tournaments/:id/update-match-result', async (req, res) => {
     const predictions = (await pool.query('SELECT * FROM predictions WHERE match_id = $1', [matchId])).rows;
     for (const pred of predictions) {
         if (pred.predicted_winner_id === winnerId && pred.points_awarded === 0) {
-            await pool.query('UPDATE users SET prediction_points = prediction_points + 10 WHERE telegram_id = $1', [pred.user_id]);
-            await pool.query('UPDATE predictions SET points_awarded = 10 WHERE id = $1', [pred.id]);
+            await pool.query('UPDATE users SET prediction_points = prediction_points + 15 WHERE telegram_id = $1', [pred.user_id]);
+            await pool.query('UPDATE predictions SET points_awarded = 15 WHERE id = $1', [pred.id]);
         }
     }
     res.json({ success: true });
@@ -529,6 +527,14 @@ app.post('/api/admin/set-tournament-admin', async (req, res) => {
     const admin = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [adminId])).rows[0];
     if (!admin?.is_admin) return res.status(403).json({ error: 'Только главный админ' });
     await pool.query('UPDATE users SET is_tournament_admin = $1 WHERE telegram_id = $2', [isTournamentAdmin, targetId]);
+    res.json({ success: true });
+});
+
+app.post('/api/admin/remove-points', async (req, res) => {
+    const { targetId, points, adminId } = req.body;
+    const admin = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [adminId])).rows[0];
+    if (!admin?.is_admin) return res.status(403).json({ error: 'Только админ' });
+    await pool.query('UPDATE users SET prediction_points = prediction_points - $1 WHERE telegram_id = $2', [points, targetId]);
     res.json({ success: true });
 });
 
