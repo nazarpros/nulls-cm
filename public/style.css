@@ -9,34 +9,20 @@ body {
     color: #e4e6eb;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
     overflow-x: hidden;
+    padding-bottom: 70px;
 }
 
 /* Анимированный градиентный фон */
 .app {
     min-height: 100vh;
     background: linear-gradient(135deg, #0a0c10 0%, #1a1f2e 100%);
-    padding-bottom: 80px;
     position: relative;
-}
-
-.app::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle at 20% 50%, rgba(102,126,234,0.03) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
 }
 
 /* Шапка профиля */
 .profile-section {
     position: relative;
     margin-bottom: 20px;
-    z-index: 1;
-    transition: all 0.3s ease;
 }
 
 .banner {
@@ -46,19 +32,6 @@ body {
     animation: gradientShift 8s ease infinite;
     border-radius: 0 0 24px 24px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-    position: relative;
-    overflow: hidden;
-}
-
-.banner::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.3) 100%);
-    pointer-events: none;
 }
 
 @keyframes gradientShift {
@@ -71,7 +44,6 @@ body {
     position: relative;
     width: 110px;
     margin: -55px auto 0;
-    z-index: 2;
 }
 
 .avatar {
@@ -82,12 +54,6 @@ body {
     object-fit: cover;
     background: linear-gradient(135deg, #667eea, #764ba2);
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.avatar:hover {
-    transform: scale(1.02);
-    box-shadow: 0 12px 28px rgba(102,126,234,0.3);
 }
 
 .edit-avatar {
@@ -95,7 +61,6 @@ body {
     bottom: 5px;
     right: 5px;
     background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(8px);
     border-radius: 50%;
     width: 32px;
     height: 32px;
@@ -103,14 +68,9 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.2s;
     border: 1px solid rgba(255,255,255,0.2);
     color: white;
-}
-
-.edit-avatar:hover {
-    background: #667eea;
-    transform: scale(1.1);
+    font-size: 14px;
 }
 
 h2 {
@@ -121,8 +81,6 @@ h2 {
     background: linear-gradient(135deg, #fff, #a0a0ff);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    background-clip: text;
-    letter-spacing: -0.3px;
 }
 
 .description {
@@ -131,30 +89,6 @@ h2 {
     padding: 0 20px;
     margin: 8px 0;
     font-size: 14px;
-    line-height: 1.5;
-}
-
-.links {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin: 12px 0;
-    flex-wrap: wrap;
-}
-
-.links a {
-    color: #667eea;
-    text-decoration: none;
-    font-size: 13px;
-    padding: 6px 12px;
-    background: rgba(102,126,234,0.1);
-    border-radius: 20px;
-    transition: all 0.2s;
-}
-
-.links a:hover {
-    background: rgba(102,126,234,0.2);
-    transform: translateY(-2px);
 }
 
 .edit-profile-btn {
@@ -168,41 +102,6 @@ h2 {
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
-}
-
-.edit-profile-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(102,126,234,0.4);
-}
-
-/* Карточка команды в профиле */
-.user-team-card {
-    background: rgba(102,126,234,0.15);
-    border: 1px solid rgba(102,126,234,0.3);
-    border-radius: 16px;
-    padding: 12px 20px;
-    margin: 15px 20px;
-    text-align: center;
-    font-size: 14px;
-    backdrop-filter: blur(10px);
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.user-team-card:hover {
-    background: rgba(102,126,234,0.25);
-    transform: translateY(-2px);
-}
-
-.user-team-card strong {
-    color: #667eea;
-}
-
-.team-link {
-    margin-left: 8px;
-    font-size: 16px;
 }
 
 /* Навигация */
@@ -214,9 +113,8 @@ h2 {
     display: flex;
     background: rgba(10,12,16,0.95);
     backdrop-filter: blur(20px);
-    padding: 8px 0 20px;
+    padding: 10px 0 20px;
     border-top: 1px solid rgba(255,255,255,0.05);
-    box-shadow: 0 -4px 20px rgba(0,0,0,0.3);
     z-index: 100;
 }
 
@@ -228,77 +126,48 @@ h2 {
     font-size: 12px;
     padding: 8px;
     cursor: pointer;
-    transition: all 0.2s;
-    font-weight: 500;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 6px;
-}
-
-.nav-btn svg {
-    transition: all 0.2s;
-}
-
-.nav-btn:hover {
-    color: #a0a0ff;
-    transform: translateY(-2px);
-}
-
-.nav-btn:hover svg {
-    stroke: #a0a0ff;
+    gap: 4px;
 }
 
 .nav-btn.active {
     color: #667eea;
 }
 
-.nav-btn.active svg {
-    stroke: #667eea;
+.nav-btn svg {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
 }
 
 /* Контент */
 .content {
     padding: 20px;
-    animation: fadeIn 0.3s ease;
-    position: relative;
-    z-index: 1;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Карточки */
 .card {
     background: rgba(30, 34, 48, 0.8);
-    backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 16px;
     border: 1px solid rgba(255,255,255,0.05);
-    transition: all 0.2s;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    background: rgba(40, 44, 60, 0.9);
-    border-color: rgba(102,126,234,0.3);
 }
 
 .card h3 {
     margin-bottom: 8px;
     font-size: 18px;
     color: #fff;
-    font-weight: 600;
 }
 
 .card p {
     color: #8e8e9e;
     font-size: 14px;
     margin: 8px 0;
-    line-height: 1.5;
 }
 
 .card button {
@@ -309,14 +178,6 @@ h2 {
     border: none;
     border-radius: 30px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.card button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(102,126,234,0.4);
 }
 
 /* Кнопка создания */
@@ -331,16 +192,6 @@ h2 {
     font-weight: 600;
     margin-bottom: 20px;
     cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.create-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102,126,234,0.4);
 }
 
 /* Кнопка назад */
@@ -352,20 +203,9 @@ h2 {
     border-radius: 30px;
     color: #667eea;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
 }
 
-.back-btn:hover {
-    background: rgba(102,126,234,0.3);
-    transform: translateX(-2px);
-}
-
-/* Сетка команд */
+/* Команды */
 .teams-grid {
     display: flex;
     flex-direction: column;
@@ -373,35 +213,8 @@ h2 {
 }
 
 .team-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     text-align: center;
     cursor: pointer;
-    transition: all 0.2s;
-}
-
-.team-card:hover {
-    transform: translateY(-2px);
-}
-
-.team-avatar {
-    font-size: 48px;
-    margin-bottom: 8px;
-    width: 64px;
-    height: 64px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(102,126,234,0.1);
-    border-radius: 50%;
-}
-
-.team-avatar-img {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
 }
 
 .team-stats {
@@ -411,6 +224,7 @@ h2 {
     padding: 4px 12px;
     background: rgba(255,255,255,0.05);
     border-radius: 20px;
+    display: inline-block;
 }
 
 .owner-badge {
@@ -418,16 +232,14 @@ h2 {
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 10px;
-    font-weight: bold;
     color: #1a1f2e;
-    margin-top: 6px;
     display: inline-block;
+    margin-top: 6px;
 }
 
 /* Детальная страница команды */
 .team-detail {
     position: relative;
-    animation: fadeIn 0.3s ease;
 }
 
 .team-banner {
@@ -435,12 +247,6 @@ h2 {
     background: linear-gradient(135deg, #667eea, #764ba2);
     border-radius: 16px;
     position: relative;
-    overflow: hidden;
-}
-
-.team-banner-placeholder {
-    height: 100%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
 }
 
 .edit-banner-btn {
@@ -448,22 +254,12 @@ h2 {
     bottom: 12px;
     right: 12px;
     background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(8px);
     border: none;
     border-radius: 20px;
     padding: 6px 12px;
     color: white;
     font-size: 12px;
     cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.edit-banner-btn:hover {
-    background: rgba(102,126,234,0.8);
-    transform: scale(1.02);
 }
 
 .team-detail-avatar {
@@ -479,19 +275,6 @@ h2 {
     border-radius: 50%;
     border: 4px solid #0a0c10;
     object-fit: cover;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-}
-
-.team-detail-img-placeholder {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 4px solid #0a0c10;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
 }
 
 .edit-avatar-btn {
@@ -499,7 +282,6 @@ h2 {
     bottom: 5px;
     right: 5px;
     background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(8px);
     border-radius: 50%;
     width: 28px;
     height: 28px;
@@ -509,26 +291,18 @@ h2 {
     cursor: pointer;
     border: none;
     color: white;
-    transition: all 0.2s;
-}
-
-.edit-avatar-btn:hover {
-    background: #667eea;
-    transform: scale(1.1);
 }
 
 .team-description {
     text-align: center;
     color: #8e8e9e;
     margin: 12px 0;
-    font-size: 14px;
 }
 
 .team-info-row {
     display: flex;
     gap: 12px;
     margin: 16px 0;
-    flex-wrap: wrap;
 }
 
 .team-info-item {
@@ -543,7 +317,6 @@ h2 {
     display: block;
     font-size: 11px;
     color: #8e8e9e;
-    margin-bottom: 4px;
 }
 
 .info-value {
@@ -558,12 +331,6 @@ h2 {
     border-radius: 16px;
 }
 
-.team-members h3 {
-    margin-bottom: 12px;
-    font-size: 16px;
-    font-weight: 600;
-}
-
 .members-list {
     display: flex;
     flex-direction: column;
@@ -574,7 +341,6 @@ h2 {
     padding: 8px 12px;
     background: rgba(255,255,255,0.05);
     border-radius: 10px;
-    font-size: 14px;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -597,7 +363,7 @@ h2 {
     color: #667eea;
 }
 
-.join-team-btn, .leave-team-btn, .edit-team-btn, .delete-team-btn {
+.join-team-btn, .leave-team-btn {
     width: 100%;
     margin-top: 12px;
     padding: 12px;
@@ -605,7 +371,6 @@ h2 {
     border-radius: 30px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .join-team-btn {
@@ -616,23 +381,6 @@ h2 {
 .leave-team-btn {
     background: rgba(255,165,0,0.2);
     color: #ffa500;
-}
-
-.edit-team-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.delete-team-btn {
-    background: rgba(255,59,48,0.2);
-    color: #ff3b30;
-}
-
-.team-admin-actions {
-    margin-top: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
 }
 
 /* Матчи */
@@ -678,6 +426,33 @@ h2 {
     flex-wrap: wrap;
 }
 
+.match-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    display: inline-block;
+}
+
+.match-status.searching {
+    background: #ffa50020;
+    color: #ffa500;
+}
+
+.match-status.ready {
+    background: #00c85320;
+    color: #00c853;
+}
+
+.match-code {
+    text-align: center;
+    padding: 12px;
+    background: rgba(102,126,234,0.2);
+    border-radius: 12px;
+    margin: 12px 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
 .finish-btn {
     background: linear-gradient(135deg, #00c853, #00a844);
 }
@@ -694,67 +469,19 @@ h2 {
     text-align: center;
     margin-bottom: 20px;
     color: #ffa500;
-    font-size: 14px;
-}
-
-.match-header {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 12px;
-}
-
-.match-status {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 500;
-}
-
-.match-status.searching {
-    background: #ffa50020;
-    color: #ffa500;
-}
-
-.match-status.ready {
-    background: #00c85320;
-    color: #00c853;
-}
-
-.match-status.finished {
-    background: #667eea20;
-    color: #667eea;
-}
-
-.match-code {
-    text-align: center;
-    padding: 12px;
-    background: rgba(102,126,234,0.2);
-    border-radius: 12px;
-    margin: 12px 0;
-    font-size: 18px;
-    font-weight: 600;
-    letter-spacing: 1px;
-}
-
-.code-btn {
-    background: linear-gradient(135deg, #f093fb, #667eea);
 }
 
 /* Турниры */
 .tournament-stats {
     display: flex;
     justify-content: space-between;
-    align-items: center;
     margin-top: 12px;
-    flex-wrap: wrap;
-    gap: 8px;
 }
 
 .tournament-status {
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 12px;
-    font-weight: 500;
 }
 
 .tournament-status.registration {
@@ -767,11 +494,6 @@ h2 {
     color: #5e9bff;
 }
 
-.tournament-status.finished {
-    background: #00c85320;
-    color: #00c853;
-}
-
 /* Модальное окно */
 .modal {
     position: fixed;
@@ -780,12 +502,10 @@ h2 {
     right: 0;
     bottom: 0;
     background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    animation: fadeIn 0.2s ease;
 }
 
 .modal-content {
@@ -795,14 +515,10 @@ h2 {
     width: 90%;
     max-width: 320px;
     border: 1px solid rgba(102,126,234,0.3);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
 .modal-content h3 {
     margin-bottom: 16px;
-    font-size: 20px;
-    font-weight: 600;
-    color: #fff;
 }
 
 .modal-content input,
@@ -811,23 +527,9 @@ h2 {
     padding: 12px;
     margin: 8px 0;
     background: #2a2e3e;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: none;
     border-radius: 12px;
     color: white;
-    font-size: 14px;
-    transition: all 0.2s;
-}
-
-.modal-content input:focus,
-.modal-content textarea:focus {
-    outline: none;
-    border-color: #667eea;
-    background: #2f3345;
-}
-
-.modal-content input::placeholder,
-.modal-content textarea::placeholder {
-    color: #6b6e7e;
 }
 
 .modal-buttons {
@@ -842,9 +544,6 @@ h2 {
     border: none;
     border-radius: 12px;
     cursor: pointer;
-    font-weight: 500;
-    font-size: 14px;
-    transition: all 0.2s;
 }
 
 .modal-buttons button:first-child {
@@ -857,42 +556,10 @@ h2 {
     color: #8e8e9e;
 }
 
-.modal-buttons button:hover {
-    transform: translateY(-1px);
-}
-
-/* Кнопки загрузки */
-.upload-btn {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    background: rgba(102,126,234,0.2);
-    border: 1px solid rgba(102,126,234,0.5);
-    border-radius: 30px;
-    color: #667eea;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.upload-btn:hover {
-    background: rgba(102,126,234,0.3);
-    transform: translateY(-1px);
-}
-
 /* Админ панель */
-.admin-panel {
-    padding: 20px;
-}
-
-.admin-panel h2 {
-    margin-bottom: 20px;
-}
-
 .admin-stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 10px;
     margin-bottom: 20px;
 }
@@ -902,7 +569,6 @@ h2 {
     padding: 12px;
     border-radius: 12px;
     text-align: center;
-    font-size: 14px;
 }
 
 .admin-tabs {
@@ -919,7 +585,6 @@ h2 {
     border-radius: 30px;
     color: #8e8e9e;
     cursor: pointer;
-    transition: all 0.2s;
 }
 
 .admin-tab.active {
@@ -936,21 +601,6 @@ h2 {
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 10px;
-}
-
-.user-id, .item-id {
-    font-size: 11px;
-    color: #8e8e9e;
-    margin-left: 8px;
-}
-
-.team-badge {
-    background: rgba(102,126,234,0.2);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 10px;
-    margin-left: 8px;
 }
 
 .user-status {
@@ -969,12 +619,6 @@ h2 {
     color: #ff3b30;
 }
 
-.admin-user-actions {
-    display: flex;
-    gap: 8px;
-    align-items: center;
-}
-
 .small-btn {
     padding: 4px 12px;
     border: none;
@@ -989,11 +633,45 @@ h2 {
     background: #ff3b30;
 }
 
-.hidden {
-    display: none;
+.user-team-card {
+    background: rgba(102,126,234,0.15);
+    border: 1px solid rgba(102,126,234,0.3);
+    border-radius: 16px;
+    padding: 12px 20px;
+    margin: 15px 20px;
+    text-align: center;
+    cursor: pointer;
 }
 
-/* Скроллбар */
+/* Адаптивность */
+@media (max-width: 480px) {
+    .banner {
+        height: 150px;
+    }
+    .avatar {
+        width: 90px;
+        height: 90px;
+    }
+    .avatar-container {
+        width: 90px;
+        margin-top: -45px;
+    }
+    h2 {
+        font-size: 20px;
+    }
+    .match-teams {
+        flex-direction: column;
+        gap: 10px;
+    }
+    .vs {
+        padding: 5px 0;
+    }
+}
+
+button:active {
+    transform: scale(0.97);
+}
+
 ::-webkit-scrollbar {
     width: 6px;
 }
@@ -1005,99 +683,4 @@ h2 {
 ::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, #667eea, #764ba2);
     border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #764ba2, #f093fb);
-}
-
-/* Адаптивность */
-@media (max-width: 480px) {
-    .banner {
-        height: 150px;
-    }
-    
-    .avatar {
-        width: 90px;
-        height: 90px;
-    }
-    
-    .avatar-container {
-        width: 90px;
-        margin-top: -45px;
-    }
-    
-    h2 {
-        font-size: 20px;
-    }
-    
-    .nav-btn {
-        font-size: 10px;
-    }
-    
-    .nav-btn svg {
-        width: 18px;
-        height: 18px;
-    }
-    
-    .card {
-        padding: 16px;
-    }
-    
-    .create-btn {
-        padding: 12px;
-        font-size: 14px;
-    }
-    
-    .team-banner {
-        height: 120px;
-    }
-    
-    .team-detail-avatar {
-        width: 80px;
-        margin-top: -40px;
-    }
-    
-    .team-detail-img {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .match-teams {
-        flex-direction: column;
-        gap: 10px;
-    }
-    
-    .vs {
-        padding: 5px 0;
-    }
-    
-    .team-block {
-        width: 100%;
-    }
-}
-
-/* Анимации для загрузки */
-@keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-}
-
-.loading {
-    background: linear-gradient(90deg, #1e2230 25%, #2a2e3e 50%, #1e2230 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-    border-radius: 12px;
-}
-
-/* Эффект нажатия */
-button:active {
-    transform: scale(0.97);
-}
-
-/* Telegram темы */
-@media (prefers-color-scheme: dark) {
-    body {
-        background: var(--tg-theme-bg-color, #0a0c10);
-    }
     }
