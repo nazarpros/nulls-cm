@@ -1,961 +1,452 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background: #0a0c10;
-    color: #e4e6eb;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-    overflow-x: hidden;
-    padding-bottom: 70px;
-}
-
-/* Анимированный градиентный фон */
-.app {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #0a0c10 0%, #1a1f2e 100%);
-    position: relative;
-}
-
-/* Шапка профиля */
-.profile-section {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.banner {
-    height: 180px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-    background-size: 200% 200%;
-    animation: gradientShift 8s ease infinite;
-    border-radius: 0 0 24px 24px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.avatar-container {
-    position: relative;
-    width: 110px;
-    margin: -55px auto 0;
-}
-
-.avatar {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    border: 4px solid #0a0c10;
-    object-fit: cover;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.avatar:hover {
-    transform: scale(1.02);
-    box-shadow: 0 12px 28px rgba(102,126,234,0.3);
-}
-
-.edit-avatar {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(8px);
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
-}
-
-.edit-avatar:hover {
-    background: #667eea;
-    transform: scale(1.1);
-}
-
-h2 {
-    text-align: center;
-    margin-top: 12px;
-    font-size: 24px;
-    font-weight: 600;
-    background: linear-gradient(135deg, #fff, #a0a0ff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.description {
-    text-align: center;
-    color: #8e8e9e;
-    padding: 0 20px;
-    margin: 8px 0;
-    font-size: 14px;
-}
-
-.edit-profile-btn {
-    display: block;
-    margin: 12px auto;
-    padding: 10px 24px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.edit-profile-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(102,126,234,0.4);
-}
-
-/* Карточка команды в профиле */
-.user-team-card {
-    background: rgba(102,126,234,0.15);
-    border: 1px solid rgba(102,126,234,0.3);
-    border-radius: 16px;
-    padding: 12px 20px;
-    margin: 15px 20px;
-    text-align: center;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.user-team-card:hover {
-    background: rgba(102,126,234,0.25);
-    transform: translateY(-2px);
-}
-
-.leaderboard-btn {
-    display: block;
-    margin: 10px auto;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #f093fb, #667eea);
-    border: none;
-    border-radius: 30px;
-    color: white;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-/* Навигация */
-.nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    background: rgba(10,12,16,0.95);
-    backdrop-filter: blur(20px);
-    padding: 10px 0 20px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    z-index: 100;
-}
-
-.nav-btn {
-    flex: 1;
-    background: none;
-    border: none;
-    color: #8e8e9e;
-    font-size: 12px;
-    padding: 8px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.2s;
-}
-
-.nav-btn.active {
-    color: #667eea;
-}
-
-.nav-btn svg {
-    width: 24px;
-    height: 24px;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
-}
-
-.nav-btn:hover {
-    transform: translateY(-2px);
-}
-
-/* Контент */
-.content {
-    padding: 20px;
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Карточки */
-.card {
-    background: rgba(30, 34, 48, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 16px;
-    border: 1px solid rgba(255,255,255,0.05);
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    background: rgba(40, 44, 60, 0.9);
-    border-color: rgba(102,126,234,0.3);
-}
-
-.card h3 {
-    margin-bottom: 8px;
-    font-size: 18px;
-    color: #fff;
-}
-
-.card p {
-    color: #8e8e9e;
-    font-size: 14px;
-    margin: 8px 0;
-}
-
-/* Кнопка создания */
-.create-btn {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.create-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102,126,234,0.4);
-}
-
-/* Кнопка назад */
-.back-btn {
-    margin-bottom: 20px;
-    padding: 8px 16px;
-    background: rgba(102,126,234,0.2);
-    border: 1px solid rgba(102,126,234,0.3);
-    border-radius: 30px;
-    color: #667eea;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.back-btn:hover {
-    background: rgba(102,126,234,0.3);
-    transform: translateX(-2px);
-}
-
-/* Команды */
-.teams-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.team-card {
-    text-align: center;
-}
-
-.team-avatar {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(102,126,234,0.1);
-    border-radius: 50%;
-    font-size: 32px;
-}
-
-.team-avatar-img {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.team-stats {
-    font-size: 12px;
-    color: #8e8e9e;
-    margin: 8px 0;
-    padding: 4px 12px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 20px;
-    display: inline-block;
-}
-
-.owner-badge {
-    background: linear-gradient(135deg, #ffd700, #ffb347);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 10px;
-    color: #1a1f2e;
-    display: inline-block;
-    margin-top: 6px;
-}
-
-/* Детальная страница команды */
-.team-detail {
-    position: relative;
-}
-
-.team-banner {
-    height: 150px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 16px;
-    position: relative;
-}
-
-.edit-banner-btn {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    border: none;
-    border-radius: 20px;
-    padding: 6px 12px;
-    color: white;
-    font-size: 12px;
-    cursor: pointer;
-}
-
-.edit-avatar-btn {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: none;
-    color: white;
-}
-
-.team-detail-avatar {
-    position: relative;
-    width: 100px;
-    margin: -50px auto 0;
-    text-align: center;
-}
-
-.team-detail-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 4px solid #0a0c10;
-    object-fit: cover;
-}
-
-.team-description {
-    text-align: center;
-    color: #8e8e9e;
-    margin: 12px 0;
-}
-
-.team-members {
-    margin-top: 20px;
-    padding: 16px;
-    background: rgba(30,34,48,0.6);
-    border-radius: 16px;
-}
-
-.members-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.member-item {
-    padding: 8px 12px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    font-size: 14px;
-}
-
-.join-team-btn, .leave-team-btn, .delete-team-btn {
-    width: 100%;
-    margin-top: 12px;
-    padding: 12px;
-    border: none;
-    border-radius: 30px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.join-team-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.leave-team-btn {
-    background: rgba(255,165,0,0.2);
-    color: #ffa500;
-}
-
-.delete-team-btn {
-    background: rgba(255,59,48,0.2);
-    color: #ff3b30;
-}
-
-/* Матчи */
-.match-teams {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-}
-
-.match-status {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-}
-
-.match-status.searching {
-    background: #ffa50020;
-    color: #ffa500;
-}
-
-.match-status.ready {
-    background: #00c85320;
-    color: #00c853;
-}
-
-.match-status.finished {
-    background: #667eea20;
-    color: #667eea;
-}
-
-.match-code {
-    text-align: center;
-    padding: 12px;
-    background: rgba(102,126,234,0.2);
-    border-radius: 12px;
-    margin: 12px 0;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.match-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-}
-
-.code-btn {
-    background: linear-gradient(135deg, #f093fb, #667eea);
-}
-
-.finish-btn {
-    background: linear-gradient(135deg, #00c853, #00a844);
-}
-
-.delete-btn {
-    background: linear-gradient(135deg, #ff3b30, #d32f2f);
-}
-
-.warning-banner {
-    background: rgba(255,165,0,0.2);
-    border: 1px solid rgba(255,165,0,0.5);
-    border-radius: 12px;
-    padding: 12px;
-    text-align: center;
-    margin-bottom: 20px;
-    color: #ffa500;
-}
-
-/* Турниры */
-.tournament-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.tournament-detail {
-    padding: 10px;
-}
-
-.tournament-banner {
-    height: 150px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 48px;
-    margin-bottom: 20px;
-    background-size: cover;
-    background-position: center;
-}
-
-.tournament-banner-placeholder {
-    font-size: 64px;
-}
-
-.tournament-info {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin: 15px 0;
-    padding: 10px;
-    background: rgba(30,34,48,0.6);
-    border-radius: 16px;
-}
-
-.info-item {
-    flex: 1;
-    text-align: center;
-    font-size: 14px;
-}
-
-.tournament-status {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-}
-
-.tournament-status.registration {
-    background: #ffa50020;
-    color: #ffa500;
-}
-
-.tournament-status.ongoing {
-    background: #5e9bff20;
-    color: #5e9bff;
-}
-
-.tournament-status.finished {
-    background: #00c85320;
-    color: #00c853;
-}
-
-.tournament-admin-panel {
-    margin: 20px 0;
-    padding: 15px;
-    background: rgba(30,34,48,0.6);
-    border-radius: 16px;
-}
-
-.admin-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-}
-
-.admin-buttons button {
-    padding: 8px 16px;
-    background: #667eea;
-    border: none;
-    border-radius: 20px;
-    color: white;
-    cursor: pointer;
-}
-
-.tournament-teams {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 10px 0;
-}
-
-.tournament-team-card {
-    background: rgba(102,126,234,0.2);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-}
-
-.tournament-match-card {
-    background: rgba(30,34,48,0.6);
-    border-radius: 16px;
-    padding: 15px;
-    margin: 15px 0;
-}
-
-.match-teams {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-}
-
-.match-teams .team {
-    flex: 1;
-    text-align: center;
-    padding: 10px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-}
-
-.match-teams .team.winner {
-    background: rgba(0,200,83,0.2);
-    border: 1px solid #00c853;
-}
-
-.vs {
-    font-weight: bold;
-    color: #667eea;
-}
-
-.match-score {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.prediction-deadline {
-    text-align: center;
-    font-size: 12px;
-    color: #ffa500;
-    margin-top: 8px;
-}
-
-.predictions-stats {
-    text-align: center;
-    margin: 10px 0;
-    font-size: 14px;
-}
-
-.predict-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin: 10px 0;
-}
-
-.predict-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border: none;
-    border-radius: 30px;
-    padding: 8px 16px;
-    color: white;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.my-prediction {
-    text-align: center;
-    margin-top: 10px;
-    padding: 8px;
-    background: rgba(102,126,234,0.2);
-    border-radius: 12px;
-    font-size: 12px;
-}
-
-.match-admin {
-    margin-top: 10px;
-    text-align: center;
-}
-
-.empty-message {
-    text-align: center;
-    color: #8e8e9e;
-    padding: 20px;
-}
-
-/* Таблица лидеров */
-.leaderboard {
-    padding: 10px;
-}
-
-.leaderboard h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.leaderboard-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    background: rgba(30,34,48,0.6);
-    border-radius: 12px;
-    margin-bottom: 8px;
-}
-
-.leaderboard-item.current-user {
-    background: rgba(102,126,234,0.3);
-    border: 1px solid #667eea;
-}
-
-.rank {
-    font-weight: bold;
-    font-size: 18px;
-    width: 40px;
-}
-
-.username {
-    flex: 1;
-    padding: 0 10px;
-}
-
-.points {
-    color: #ffd700;
-    font-weight: bold;
-}
-
-/* Админ панель */
-.admin-panel {
-    padding: 20px;
-}
-
-.admin-panel h2 {
-    margin-bottom: 20px;
-}
-
-.admin-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.admin-stat-card {
-    background: rgba(30,34,48,0.8);
-    padding: 12px;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 14px;
-}
-
-.admin-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.admin-tab {
-    padding: 8px 16px;
-    background: rgba(30,34,48,0.6);
-    border: none;
-    border-radius: 30px;
-    color: #8e8e9e;
-    cursor: pointer;
-}
-
-.admin-tab.active {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.admin-user-card, .admin-item-card {
-    background: rgba(30,34,48,0.6);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.user-status {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-}
-
-.user-status.active {
-    background: #00c85320;
-    color: #00c853;
-}
-
-.user-status.banned {
-    background: #ff3b3020;
-    color: #ff3b30;
-}
-
-.small-btn {
-    padding: 4px 12px;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 12px;
-    background: #667eea;
-    color: white;
-}
-
-.small-btn.danger {
-    background: #ff3b30;
-}
-
-/* Модальное окно */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(12px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: #1e2230;
-    padding: 24px;
-    border-radius: 24px;
-    width: 90%;
-    max-width: 320px;
-    border: 1px solid rgba(102,126,234,0.3);
-}
-
-.modal-content h3 {
-    margin-bottom: 16px;
-}
-
-.modal-content input,
-.modal-content textarea,
-.modal-content select {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    background: #2a2e3e;
-    border: none;
-    border-radius: 12px;
-    color: white;
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-}
-
-.modal-buttons button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
-.modal-buttons button:first-child {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.modal-buttons button:last-child {
-    background: #2a2e3e;
-    color: #8e8e9e;
-}
-
-/* Кнопки загрузки */
-.upload-btn {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    background: rgba(102,126,234,0.2);
-    border: 1px solid rgba(102,126,234,0.5);
-    border-radius: 30px;
-    color: #667eea;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.upload-btn:hover {
-    background: rgba(102,126,234,0.3);
-    transform: translateY(-1px);
-}
-
-/* Скроллбар */
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: #0a0c10;
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 10px;
-}
-
-/* Адаптивность */
-@media (max-width: 480px) {
-    .banner {
-        height: 150px;
-    }
-    .avatar {
-        width: 90px;
-        height: 90px;
-    }
-    .avatar-container {
-        width: 90px;
-        margin-top: -45px;
-    }
-    h2 {
-        font-size: 20px;
-    }
-    .match-teams {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .vs {
-        padding: 5px 0;
-    }
-    .team-banner {
-        height: 120px;
-    }
-    .team-detail-avatar {
-        width: 80px;
-        margin-top: -40px;
-    }
-    .team-detail-img {
-        width: 80px;
-        height: 80px;
+const express = require('express');
+const cors = require('cors');
+const { Pool } = require('pg');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
+});
+
+async function initDB() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS users (
+                telegram_id BIGINT PRIMARY KEY,
+                username TEXT,
+                avatar_url TEXT,
+                banner_url TEXT,
+                description TEXT,
+                team_id TEXT,
+                is_admin BOOLEAN DEFAULT false,
+                is_tournament_admin BOOLEAN DEFAULT false,
+                is_banned BOOLEAN DEFAULT false,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            
+            CREATE TABLE IF NOT EXISTS teams (
+                id TEXT PRIMARY KEY,
+                name TEXT,
+                owner_id BIGINT,
+                description TEXT,
+                avatar_url TEXT,
+                banner_url TEXT,
+                members TEXT[],
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            
+            CREATE TABLE IF NOT EXISTS matches (
+                id TEXT PRIMARY KEY,
+                team1 TEXT,
+                team2 TEXT,
+                team1_name TEXT,
+                team2_name TEXT,
+                created_by BIGINT,
+                game_code TEXT,
+                status TEXT,
+                winner TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            
+            CREATE TABLE IF NOT EXISTS tournaments (
+                id TEXT PRIMARY KEY,
+                title TEXT,
+                description TEXT,
+                banner_url TEXT,
+                status TEXT DEFAULT 'registration',
+                teams TEXT[],
+                owner_id BIGINT,
+                created_by BIGINT,
+                prize_pool TEXT,
+                start_date TIMESTAMP,
+                end_date TIMESTAMP,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            
+            CREATE TABLE IF NOT EXISTS tournament_matches (
+                id TEXT PRIMARY KEY,
+                tournament_id TEXT,
+                team1_id TEXT,
+                team2_id TEXT,
+                team1_name TEXT,
+                team2_name TEXT,
+                round INTEGER,
+                score TEXT,
+                winner_id TEXT,
+                status TEXT DEFAULT 'scheduled',
+                prediction_deadline TIMESTAMP,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+            
+            CREATE TABLE IF NOT EXISTS predictions (
+                id SERIAL PRIMARY KEY,
+                match_id TEXT,
+                user_id BIGINT,
+                predicted_winner_id TEXT,
+                points_awarded INTEGER DEFAULT 0,
+                created_at TIMESTAMP DEFAULT NOW()
+            );
+        `);
+        
+        await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS prediction_points INTEGER DEFAULT 0;`);
+        await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS prize_pool TEXT;`);
+        await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS start_date TIMESTAMP;`);
+        await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS end_date TIMESTAMP;`);
+        
+        console.log('✅ Database initialized');
+    } catch (err) {
+        console.error('Database init error:', err);
     }
 }
 
-button:active {
-    transform: scale(0.97);
-}
+initDB();
+
+// ==================== АВТОРИЗАЦИЯ ====================
+app.post('/api/auth/telegram', async (req, res) => {
+    const { id, username, first_name, photo_url } = req.body;
+    try {
+        const existing = await pool.query('SELECT * FROM users WHERE telegram_id = $1', [id]);
+        if (existing.rows.length === 0) {
+            await pool.query(
+                'INSERT INTO users (telegram_id, username, avatar_url, is_admin) VALUES ($1, $2, $3, $4)',
+                [id, username || first_name, photo_url || null, username === 'memorypatapim']
+            );
+        }
+        const user = (await pool.query('SELECT * FROM users WHERE telegram_id = $1', [id])).rows[0];
+        if (user.is_banned) return res.status(403).json({ error: 'Ваш аккаунт заблокирован' });
+        const token = Buffer.from(`${id}:${Date.now()}`).toString('base64');
+        res.json({ success: true, token, user, isAdmin: user.is_admin, isTournamentAdmin: user.is_tournament_admin });
+    } catch (err) {
+        console.error('Auth error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/become-admin', async (req, res) => {
+    const { userId, secretName } = req.body;
+    if (secretName === 'ghosty') {
+        await pool.query('UPDATE users SET is_admin = true WHERE telegram_id = $1', [userId]);
+        res.json({ success: true, message: 'Теперь вы админ!' });
+    } else {
+        res.json({ success: false, message: 'Неверное имя' });
+    }
+});
+
+// ==================== ПРОФИЛЬ ====================
+app.get('/api/profile/:id', async (req, res) => {
+    const user = (await pool.query('SELECT * FROM users WHERE telegram_id = $1', [req.params.id])).rows[0];
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json(user);
+});
+
+app.put('/api/profile/:id', async (req, res) => {
+    const { username, description, avatar_url, banner_url } = req.body;
+    await pool.query(
+        'UPDATE users SET username = COALESCE($1, username), description = COALESCE($2, description), avatar_url = COALESCE($3, avatar_url), banner_url = COALESCE($4, banner_url) WHERE telegram_id = $5',
+        [username, description, avatar_url, banner_url, req.params.id]
+    );
+    res.json({ success: true });
+});
+
+// ==================== КОМАНДЫ ====================
+app.get('/api/teams', async (req, res) => {
+    const teams = (await pool.query('SELECT * FROM teams ORDER BY created_at DESC')).rows;
+    res.json(teams);
+});
+
+app.get('/api/teams/:id', async (req, res) => {
+    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [req.params.id])).rows[0];
+    if (!team) return res.status(404).json({ error: 'Team not found' });
+    res.json(team);
+});
+
+app.post('/api/teams', async (req, res) => {
+    const { name, ownerId, description } = req.body;
+    const id = Date.now().toString();
+    await pool.query(
+        'INSERT INTO teams (id, name, owner_id, description, members) VALUES ($1, $2, $3, $4, $5)',
+        [id, name, ownerId, description || '', [ownerId.toString()]]
+    );
+    await pool.query('UPDATE users SET team_id = $1 WHERE telegram_id = $2', [id, ownerId]);
+    res.json({ id, name, ownerId, description, members: [ownerId] });
+});
+
+app.post('/api/teams/:id/join', async (req, res) => {
+    const { userId } = req.body;
+    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [req.params.id])).rows[0];
+    if (!team) return res.status(404).json({ error: 'Команда не найдена' });
+    if (team.members.includes(userId.toString())) return res.status(400).json({ error: 'Вы уже в команде' });
+    if (team.members.length >= 10) return res.status(400).json({ error: 'Команда полная' });
+    team.members.push(userId.toString());
+    await pool.query('UPDATE teams SET members = $1 WHERE id = $2', [team.members, req.params.id]);
+    await pool.query('UPDATE users SET team_id = $1 WHERE telegram_id = $2', [req.params.id, userId]);
+    res.json({ success: true });
+});
+
+app.post('/api/teams/:id/leave', async (req, res) => {
+    const { userId } = req.body;
+    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [req.params.id])).rows[0];
+    if (!team) return res.status(404).json({ error: 'Команда не найдена' });
+    if (team.owner_id == userId) return res.status(403).json({ error: 'Создатель не может покинуть команду' });
+    const members = team.members.filter(m => m != userId);
+    await pool.query('UPDATE teams SET members = $1 WHERE id = $2', [members, req.params.id]);
+    await pool.query('UPDATE users SET team_id = NULL WHERE telegram_id = $1', [userId]);
+    res.json({ success: true });
+});
+
+app.post('/api/teams/:id/delete', async (req, res) => {
+    const { userId } = req.body;
+    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [req.params.id])).rows[0];
+    if (!team) return res.status(404).json({ error: 'Команда не найдена' });
+    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
+    if (team.owner_id != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    for (const member of team.members) await pool.query('UPDATE users SET team_id = NULL WHERE telegram_id = $1', [member]);
+    await pool.query('DELETE FROM teams WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+});
+
+app.put('/api/teams/:id', async (req, res) => {
+    const { name, description, avatar_url, banner_url } = req.body;
+    await pool.query(
+        'UPDATE teams SET name = COALESCE($1, name), description = COALESCE($2, description), avatar_url = COALESCE($3, avatar_url), banner_url = COALESCE($4, banner_url) WHERE id = $5',
+        [name, description, avatar_url, banner_url, req.params.id]
+    );
+    res.json({ success: true });
+});
+
+app.get('/api/user/team/:userId', async (req, res) => {
+    const user = (await pool.query('SELECT team_id FROM users WHERE telegram_id = $1', [req.params.userId])).rows[0];
+    if (!user?.team_id) return res.json({ team: null });
+    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [user.team_id])).rows[0];
+    res.json({ team: team || null });
+});
+
+// ==================== МАТЧИ ====================
+app.get('/api/matches', async (req, res) => {
+    const matches = (await pool.query('SELECT * FROM matches ORDER BY created_at DESC')).rows;
+    res.json(matches);
+});
+
+app.post('/api/matches', async (req, res) => {
+    const { teamId, createdBy } = req.body;
+    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [teamId])).rows[0];
+    if (!team) return res.status(404).json({ error: 'Команда не найдена' });
+    const id = Date.now().toString();
+    await pool.query('INSERT INTO matches (id, team1, team1_name, created_by, status) VALUES ($1, $2, $3, $4, $5)', [id, teamId, team.name, createdBy, 'searching']);
+    res.json({ id, team1: teamId, team1Name: team.name, status: 'searching' });
+});
+
+app.post('/api/matches/:id/join', async (req, res) => {
+    const { teamId } = req.body;
+    const match = (await pool.query('SELECT * FROM matches WHERE id = $1', [req.params.id])).rows[0];
+    if (!match) return res.status(404).json({ error: 'Матч не найден' });
+    if (match.status !== 'searching') return res.status(400).json({ error: 'Матч уже начат' });
+    if (match.team2) return res.status(400).json({ error: 'Матч уже занят' });
+    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [teamId])).rows[0];
+    if (!team) return res.status(404).json({ error: 'Команда не найдена' });
+    await pool.query('UPDATE matches SET team2 = $1, team2_name = $2, status = $3 WHERE id = $4', [teamId, team.name, 'ready', req.params.id]);
+    res.json({ success: true });
+});
+
+app.post('/api/matches/:id/code', async (req, res) => {
+    const { gameCode } = req.body;
+    await pool.query('UPDATE matches SET game_code = $1 WHERE id = $2', [gameCode, req.params.id]);
+    res.json({ success: true });
+});
+
+app.post('/api/matches/:id/finish', async (req, res) => {
+    const { winner } = req.body;
+    await pool.query('UPDATE matches SET status = $1, winner = $2 WHERE id = $3', ['finished', winner, req.params.id]);
+    res.json({ success: true });
+});
+
+app.post('/api/matches/:id/delete', async (req, res) => {
+    const { userId } = req.body;
+    const match = (await pool.query('SELECT * FROM matches WHERE id = $1', [req.params.id])).rows[0];
+    if (!match) return res.status(404).json({ error: 'Матч не найден' });
+    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
+    if (match.created_by != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    await pool.query('DELETE FROM matches WHERE id = $1', [req.params.id]);
+    res.json({ success: true });
+});
+
+// ==================== ТУРНИРЫ ====================
+app.get('/api/tournaments', async (req, res) => {
+    const tournaments = (await pool.query('SELECT * FROM tournaments ORDER BY created_at DESC')).rows;
+    res.json(tournaments);
+});
+
+app.get('/api/tournaments/:id/full', async (req, res) => {
+    const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
+    if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
+    const matches = (await pool.query('SELECT * FROM tournament_matches WHERE tournament_id = $1 ORDER BY round, created_at', [req.params.id])).rows;
+    for (let match of matches) {
+        const predictions = (await pool.query('SELECT * FROM predictions WHERE match_id = $1', [match.id])).rows;
+        match.predictions = predictions;
+        match.predictionsCount = predictions.length;
+        match.team1Votes = predictions.filter(p => p.predicted_winner_id === match.team1_id).length;
+        match.team2Votes = predictions.filter(p => p.predicted_winner_id === match.team2_id).length;
+    }
+    tournament.matches = matches;
+    res.json(tournament);
+});
+
+app.post('/api/tournaments', async (req, res) => {
+    const { createdBy, title, description, prizePool, startDate, endDate } = req.body;
+    const id = Date.now().toString();
+    const user = (await pool.query('SELECT is_admin, is_tournament_admin FROM users WHERE telegram_id = $1', [createdBy])).rows[0];
+    if (!user?.is_admin && !user?.is_tournament_admin) return res.status(403).json({ error: 'Нет прав' });
+    await pool.query('INSERT INTO tournaments (id, title, description, status, teams, created_by, owner_id, prize_pool, start_date, end_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)', [id, title, description || '', 'registration', [], createdBy, createdBy, prizePool || null, startDate || null, endDate || null]);
+    res.json({ id, title, description, status: 'registration', teams: [], prizePool, startDate, endDate });
+});
+
+app.post('/api/tournaments/:id/status', async (req, res) => {
+    const { status, userId } = req.body;
+    const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
+    if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
+    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
+    if (tournament.owner_id != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    await pool.query('UPDATE tournaments SET status = $1 WHERE id = $2', [status, req.params.id]);
+    res.json({ success: true });
+});
+
+app.post('/api/tournaments/:id/register-team', async (req, res) => {
+    const { teamId, userId } = req.body;
+    const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
+    if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
+    if (tournament.status !== 'registration') return res.status(400).json({ error: 'Регистрация закрыта' });
+    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
+    if (tournament.owner_id != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    if (!tournament.teams.includes(teamId)) {
+        tournament.teams.push(teamId);
+        await pool.query('UPDATE tournaments SET teams = $1 WHERE id = $2', [tournament.teams, req.params.id]);
+    }
+    res.json({ success: true });
+});
+
+app.post('/api/tournaments/:id/create-match', async (req, res) => {
+    const { team1Id, team2Id, round, predictionDeadline, userId } = req.body;
+    const matchId = `${req.params.id}_${Date.now()}`;
+    const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
+    if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
+    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
+    if (tournament.owner_id != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    const team1 = (await pool.query('SELECT name FROM teams WHERE id = $1', [team1Id])).rows[0];
+    const team2 = (await pool.query('SELECT name FROM teams WHERE id = $1', [team2Id])).rows[0];
+    await pool.query('INSERT INTO tournament_matches (id, tournament_id, team1_id, team2_id, team1_name, team2_name, round, prediction_deadline) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [matchId, req.params.id, team1Id, team2Id, team1.name, team2.name, round, predictionDeadline || null]);
+    res.json({ success: true, matchId });
+});
+
+app.post('/api/tournaments/:id/update-match-result', async (req, res) => {
+    const { matchId, score, winnerId, userId } = req.body;
+    const tournament = (await pool.query('SELECT * FROM tournaments WHERE id = $1', [req.params.id])).rows[0];
+    if (!tournament) return res.status(404).json({ error: 'Турнир не найден' });
+    const user = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [userId])).rows[0];
+    if (tournament.owner_id != userId && !user?.is_admin) return res.status(403).json({ error: 'Нет прав' });
+    await pool.query('UPDATE tournament_matches SET score = $1, winner_id = $2, status = $3 WHERE id = $4', [score, winnerId, 'finished', matchId]);
+    const predictions = (await pool.query('SELECT * FROM predictions WHERE match_id = $1', [matchId])).rows;
+    for (const pred of predictions) {
+        if (pred.predicted_winner_id === winnerId && pred.points_awarded === 0) {
+            await pool.query('UPDATE users SET prediction_points = prediction_points + 10 WHERE telegram_id = $1', [pred.user_id]);
+            await pool.query('UPDATE predictions SET points_awarded = 10 WHERE id = $1', [pred.id]);
+        }
+    }
+    res.json({ success: true });
+});
+
+app.post('/api/tournaments/:id/predict', async (req, res) => {
+    const { matchId, predictedWinnerId, userId } = req.body;
+    const match = (await pool.query('SELECT * FROM tournament_matches WHERE id = $1', [matchId])).rows[0];
+    if (!match) return res.status(404).json({ error: 'Матч не найден' });
+    if (match.status === 'finished') return res.status(400).json({ error: 'Матч уже завершён' });
+    if (match.prediction_deadline && new Date() > new Date(match.prediction_deadline)) return res.status(400).json({ error: 'Время для прогнозов истекло' });
+    const existing = (await pool.query('SELECT * FROM predictions WHERE match_id = $1 AND user_id = $2', [matchId, userId])).rows[0];
+    if (existing) {
+        await pool.query('UPDATE predictions SET predicted_winner_id = $1 WHERE id = $2', [predictedWinnerId, existing.id]);
+    } else {
+        await pool.query('INSERT INTO predictions (match_id, user_id, predicted_winner_id) VALUES ($1, $2, $3)', [matchId, userId, predictedWinnerId]);
+    }
+    res.json({ success: true });
+});
+
+app.get('/api/leaderboard', async (req, res) => {
+    const leaderboard = (await pool.query('SELECT telegram_id, username, prediction_points FROM users ORDER BY prediction_points DESC LIMIT 50')).rows;
+    res.json(leaderboard);
+});
+
+// ==================== АДМИНКА ====================
+app.get('/api/admin/users', async (req, res) => {
+    const users = (await pool.query('SELECT telegram_id, username, is_banned, team_id, prediction_points FROM users')).rows;
+    res.json(users);
+});
+
+app.post('/api/admin/ban', async (req, res) => {
+    const { targetId, ban } = req.body;
+    await pool.query('UPDATE users SET is_banned = $1 WHERE telegram_id = $2', [ban, targetId]);
+    res.json({ success: true });
+});
+
+app.post('/api/admin/delete-user', async (req, res) => {
+    const { targetId } = req.body;
+    await pool.query('DELETE FROM users WHERE telegram_id = $1', [targetId]);
+    res.json({ success: true });
+});
+
+app.get('/api/admin/teams', async (req, res) => {
+    const teams = (await pool.query('SELECT * FROM teams')).rows;
+    res.json(teams);
+});
+
+app.post('/api/admin/delete-team', async (req, res) => {
+    const { teamId } = req.body;
+    await pool.query('DELETE FROM teams WHERE id = $1', [teamId]);
+    res.json({ success: true });
+});
+
+app.get('/api/admin/matches', async (req, res) => {
+    const matches = (await pool.query('SELECT * FROM matches')).rows;
+    res.json(matches);
+});
+
+app.post('/api/admin/delete-match', async (req, res) => {
+    const { matchId } = req.body;
+    await pool.query('DELETE FROM matches WHERE id = $1', [matchId]);
+    res.json({ success: true });
+});
+
+app.get('/api/admin/tournaments', async (req, res) => {
+    const tournaments = (await pool.query('SELECT * FROM tournaments')).rows;
+    res.json(tournaments);
+});
+
+app.post('/api/admin/delete-tournament', async (req, res) => {
+    const { tournamentId } = req.body;
+    await pool.query('DELETE FROM tournaments WHERE id = $1', [tournamentId]);
+    res.json({ success: true });
+});
+
+app.get('/api/admin/stats', async (req, res) => {
+    const users = (await pool.query('SELECT COUNT(*) FROM users')).rows[0];
+    const teams = (await pool.query('SELECT COUNT(*) FROM teams')).rows[0];
+    const matches = (await pool.query('SELECT COUNT(*) FROM matches')).rows[0];
+    const tournaments = (await pool.query('SELECT COUNT(*) FROM tournaments')).rows[0];
+    const banned = (await pool.query('SELECT COUNT(*) FROM users WHERE is_banned = true')).rows[0];
+    res.json({ totalUsers: parseInt(users.count), totalTeams: parseInt(teams.count), totalMatches: parseInt(matches.count), totalTournaments: parseInt(tournaments.count), bannedUsers: parseInt(banned.count) });
+});
+
+app.post('/api/admin/set-tournament-admin', async (req, res) => {
+    const { targetId, isTournamentAdmin, adminId } = req.body;
+    const admin = (await pool.query('SELECT is_admin FROM users WHERE telegram_id = $1', [adminId])).rows[0];
+    if (!admin?.is_admin) return res.status(403).json({ error: 'Только главный админ' });
+    await pool.query('UPDATE users SET is_tournament_admin = $1 WHERE telegram_id = $2', [isTournamentAdmin, targetId]);
+    res.json({ success: true });
+});
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Nulls Community API running on port ${PORT}`);
+});
