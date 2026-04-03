@@ -47,16 +47,13 @@ async function uploadImageToCloudinary(file, type, targetId = null, targetType =
                 });
                 showTeamDetail(targetId);
             } else if (targetType === 'tournament') {
-                const tournament = await fetch(`/api/tournaments/${targetId}`).then(r => r.json());
-                if (type === 'avatar') {
-                    tournament.avatar_url = imageUrl;
-                } else {
-                    tournament.banner_url = imageUrl;
-                }
+                const updates = {};
+                if (type === 'banner') updates.banner_url = imageUrl;
+                if (type === 'avatar') updates.avatar_url = imageUrl;
                 await fetch(`/api/tournaments/${targetId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(tournament)
+                    body: JSON.stringify(updates)
                 });
                 showTournamentDetail(targetId);
             } else {
@@ -73,13 +70,13 @@ async function uploadImageToCloudinary(file, type, targetId = null, targetType =
                 });
                 await loadProfile();
             }
-            tg.showAlert('✅ Изображение загружено');
+            tg.showAlert('Изображение загружено');
         } else {
-            tg.showAlert('❌ Ошибка загрузки');
+            tg.showAlert('Ошибка загрузки');
         }
     } catch (error) {
         console.error(error);
-        tg.showAlert('❌ Ошибка загрузки');
+        tg.showAlert('Ошибка загрузки');
     }
 }
 
@@ -110,6 +107,16 @@ function escapeHtml(text) {
 function closeModal() {
     const modal = document.querySelector('.modal');
     if (modal) modal.remove();
+}
+
+async function showUserProfile(userId) {
+    const res = await fetch(`/api/profile/${userId}`);
+    const user = await res.json();
+    tg.showPopup({
+        title: `Профиль ${user.username}`,
+        message: `Очки предиктов: ${user.prediction_points || 0}\n${user.team ? `Команда: ${user.team.name}` : 'Без команды'}`,
+        buttons: [{ type: 'close', text: 'Закрыть' }]
+    });
 }
 
 // ==================== АВТОРИЗАЦИЯ ====================
@@ -179,9 +186,9 @@ async function loadProfile() {
     const teamInfo = document.getElementById('teamInfo');
     if (teamInfo) {
         if (userTeam.team) {
-            teamInfo.innerHTML = `<div class="user-team-card" onclick="showTeamDetail('${userTeam.team.id}')">🏠 <strong>${escapeHtml(userTeam.team.name)}</strong> →</div>`;
+            teamInfo.innerHTML = `<div class="user-team-card" onclick="showTeamDetail('${userTeam.team.id}')">Команда: <strong>${escapeHtml(userTeam.team.name)}</strong></div>`;
         } else {
-            teamInfo.innerHTML = `<div class="user-team-card">🏠 Вы не в команде</div>`;
+            teamInfo.innerHTML = `<div class="user-team-card">Без команды</div>`;
         }
     }
 }
@@ -191,14 +198,14 @@ function editProfile() {
     modal.className = 'modal';
     modal.innerHTML = `
         <div class="modal-content">
-            <h3>✏️ Редактировать профиль</h3>
+            <h3>Редактировать профиль</h3>
             <input type="text" id="editUsername" placeholder="Имя" value="${escapeHtml(currentUser.username || '')}">
             <textarea id="editDescription" placeholder="О себе" rows="3">${escapeHtml(currentUser.description || '')}</textarea>
-            <button class="upload-btn" onclick="selectImage('avatar'); closeModal();">📸 Загрузить аватарку</button>
-            <button class="upload-btn" onclick="selectImage('banner'); closeModal();">🖼️ Загрузить баннер</button>
+            <button class="upload-btn" onclick="selectImage('avatar'); closeModal();">Загрузить аватарку</button>
+            <button class="upload-btn" onclick="selectImage('banner'); closeModal();">Загрузить баннер</button>
             <div class="modal-buttons">
-                <button onclick="saveProfile()">💾 Сохранить</button>
-                <button onclick="closeModal()">❌ Отмена</button>
+                <button onclick="saveProfile()">Сохранить</button>
+                <button onclick="closeModal()">Отмена</button>
             </div>
         </div>
     `;
@@ -218,7 +225,7 @@ async function saveProfile() {
         const result = await res.json();
         if (result.success) {
             isAdmin = true;
-            tg.showAlert('Теперь вы админ!');
+            tg.showAlert('Теперь вы администратор');
             showAdminButton();
         } else {
             tg.showAlert(result.message);
@@ -249,9 +256,9 @@ async function loadTeams() {
     const content = document.getElementById('content');
     content.innerHTML = `
         <div class="search-bar">
-            <input type="text" id="teamSearch" placeholder="🔍 Поиск команд..." oninput="searchTeams()">
+            <input type="text" id="teamSearch" placeholder="Поиск команд..." oninput="searchTeams()">
         </div>
-        <button class="create-btn" onclick="showCreateTeamModal()">➕ Создать команду</button>
+        <button class="create-btn" onclick="showCreateTeamModal()">Создать команду</button>
         <div id="teamsList" class="teams-grid">
             ${teams.map(team => `
                 <div class="card team-card" onclick="showTeamDetail('${team.id}')">
@@ -260,7 +267,7 @@ async function loadTeams() {
                     </div>
                     <h3>${escapeHtml(team.name)}</h3>
                     <p>${escapeHtml(team.description || 'Нет описания')}</p>
-                    <div class="team-stats">👥 ${team.members?.length || 0}/10 участников</div>
+                    <div class="team-stats">Участников: ${team.members?.length || 0}/10</div>
                     ${team.owner_id == currentUser.telegram_id ? '<span class="owner-badge">Создатель</span>' : ''}
                 </div>
             `).join('')}
@@ -285,7 +292,7 @@ async function searchTeams() {
                 </div>
                 <h3>${escapeHtml(team.name)}</h3>
                 <p>${escapeHtml(team.description || 'Нет описания')}</p>
-                <div class="team-stats">👥 ${team.members?.length || 0}/10 участников</div>
+                <div class="team-stats">Участников: ${team.members?.length || 0}/10</div>
             </div>
         `).join('');
     }
@@ -297,7 +304,6 @@ async function showTeamDetail(teamId) {
     const isTeamAdmin = team.owner_id == currentUser.telegram_id;
     const isMember = team.members?.includes(currentUser.telegram_id.toString());
     
-    // Получаем заявки если админ
     let requestsHtml = '';
     if (isTeamAdmin) {
         const requestsRes = await fetch(`/api/teams/${teamId}/requests`);
@@ -305,12 +311,14 @@ async function showTeamDetail(teamId) {
         if (requests.length > 0) {
             requestsHtml = `
                 <div class="requests-section">
-                    <h3>📋 Заявки на вступление</h3>
+                    <h3>Заявки на вступление</h3>
                     ${requests.map(req => `
                         <div class="request-item">
                             <span>${escapeHtml(req.username)}</span>
-                            <button onclick="acceptMember('${teamId}', '${req.telegram_id}')">✅ Принять</button>
-                            <button onclick="rejectMember('${teamId}', '${req.telegram_id}')">❌ Отклонить</button>
+                            <div>
+                                <button onclick="acceptMember('${teamId}', '${req.telegram_id}')">Принять</button>
+                                <button onclick="rejectMember('${teamId}', '${req.telegram_id}')">Отклонить</button>
+                            </div>
                         </div>
                     `).join('')}
                 </div>
@@ -320,28 +328,35 @@ async function showTeamDetail(teamId) {
     
     const content = document.getElementById('content');
     content.innerHTML = `
-        <button class="back-btn" onclick="loadTeams()">← Назад</button>
+        <button class="back-btn" onclick="loadTeams()">Назад</button>
         <div class="team-detail">
             <div class="team-banner" style="background-image: url('${team.banner_url || ''}'); background-size: cover; background-position: center;">
                 ${!team.banner_url ? '<div class="team-banner-placeholder"></div>' : ''}
-                ${isTeamAdmin ? `<button class="edit-banner-btn" onclick="selectImage('banner', '${teamId}', 'team')">✏️ Баннер</button>` : ''}
+                ${isTeamAdmin ? `<button class="edit-banner-btn" onclick="selectImage('banner', '${teamId}', 'team')">Изменить баннер</button>` : ''}
             </div>
             <div class="team-detail-avatar">
                 ${team.avatar_url ? `<img src="${team.avatar_url}" class="team-detail-img">` : '<div class="team-detail-img-placeholder">👥</div>'}
-                ${isTeamAdmin ? `<button class="edit-avatar-btn" onclick="selectImage('avatar', '${teamId}', 'team')">✏️ Аватар</button>` : ''}
+                ${isTeamAdmin ? `<button class="edit-avatar-btn" onclick="selectImage('avatar', '${teamId}', 'team')">✏️</button>` : ''}
             </div>
             <h2>${escapeHtml(team.name)}</h2>
             <p class="team-description">${escapeHtml(team.description || 'Нет описания')}</p>
             <div class="team-members">
-                <h3>Участники (${team.members?.length || 0}/10)</h3>
+                <h3>Участники (${team.membersInfo?.length || 0}/10)</h3>
                 <div class="members-list">
-                    ${team.members?.map(m => `<div class="member-item">👤 Игрок ${m} ${m == team.owner_id ? '(создатель)' : ''} ${m == currentUser.telegram_id ? '(вы)' : ''}</div>`).join('')}
+                    ${(team.membersInfo || []).map(m => `
+                        <div class="member-item" onclick="showUserProfile('${m.telegram_id}')">
+                            <img src="${m.avatar_url || 'https://via.placeholder.com/32'}" class="member-avatar">
+                            <span class="member-name">${escapeHtml(m.username)}</span>
+                            ${m.telegram_id == team.owner_id ? '<span class="member-role owner">Создатель</span>' : ''}
+                            ${m.telegram_id == currentUser.telegram_id ? '<span class="member-role you">Вы</span>' : ''}
+                        </div>
+                    `).join('')}
                 </div>
             </div>
             ${requestsHtml}
-            ${!isMember && team.members?.length < 10 ? `<button class="request-join-btn" onclick="requestJoinTeam('${teamId}')">📝 Запросить вступление</button>` : ''}
-            ${isMember && !isTeamAdmin ? `<button class="leave-team-btn" onclick="leaveTeam('${teamId}')">🚪 Покинуть</button>` : ''}
-            ${isTeamAdmin ? `<button class="delete-team-btn" onclick="deleteTeam('${teamId}')">🗑️ Удалить команду</button>` : ''}
+            ${!isMember && team.members?.length < 10 ? `<button class="request-join-btn" onclick="requestJoinTeam('${teamId}')">Запросить вступление</button>` : ''}
+            ${isMember && !isTeamAdmin ? `<button class="leave-team-btn" onclick="leaveTeam('${teamId}')">Покинуть команду</button>` : ''}
+            ${isTeamAdmin ? `<button class="delete-team-btn" onclick="deleteTeam('${teamId}')">Удалить команду</button>` : ''}
         </div>
     `;
 }
@@ -441,14 +456,14 @@ async function loadMatches() {
 
     const content = document.getElementById('content');
     if (!myTeamId) {
-        content.innerHTML = `<div class="warning-banner">⚠️ Чтобы участвовать в матчах, вступите в команду</div>`;
+        content.innerHTML = `<div class="warning-banner">Чтобы участвовать в матчах, вступите в команду</div>`;
         return;
     }
 
     const myMatches = matches.filter(m => m.team1 === myTeamId || m.team2 === myTeamId);
     const availableMatches = matches.filter(m => m.status === 'searching' && m.team1 !== myTeamId && !m.team2);
 
-    let html = `<button class="create-btn" onclick="createMatch()">🎮 Создать матч (2v2)</button>`;
+    let html = `<button class="create-btn" onclick="createMatch()">Создать матч (2x2)</button>`;
 
     if (availableMatches.length) {
         html += `<h3>Доступные матчи</h3>`;
@@ -456,7 +471,7 @@ async function loadMatches() {
             html += `
                 <div class="card match-card">
                     <div class="match-teams"><strong>${escapeHtml(m.team1_name)}</strong> ищет соперника</div>
-                    <button onclick="joinMatch('${m.id}')">➕ Присоединиться</button>
+                    <button onclick="joinMatch('${m.id}')">Присоединиться</button>
                 </div>
             `;
         });
@@ -472,17 +487,17 @@ async function loadMatches() {
                         <strong>${escapeHtml(m.team1_name)}</strong> vs <strong>${escapeHtml(m.team2_name || '???')}</strong>
                     </div>
                     <div class="match-status ${m.status}">
-                        ${m.status === 'searching' ? '⏳ Ожидание соперника' : (m.status === 'ready' ? '✅ Готов к игре' : '🏆 Завершён')}
+                        ${m.status === 'searching' ? 'Ожидание соперника' : (m.status === 'ready' ? 'Готов к игре' : 'Завершён')}
                     </div>
-                    ${m.game_code ? `<div class="match-code">🎮 Код: <strong>${m.game_code}</strong></div>` : ''}
-                    ${m.winner ? `<div class="match-winner">🏆 Победитель: ${m.winner === m.team1 ? m.team1_name : m.team2_name}</div>` : ''}
+                    ${m.game_code ? `<div class="match-code">Код: <strong>${m.game_code}</strong></div>` : ''}
+                    ${m.winner ? `<div class="match-winner">Победитель: ${m.winner === m.team1 ? m.team1_name : m.team2_name}</div>` : ''}
                     <div class="match-actions">
                         ${m.status === 'ready' && !m.game_code && isHost ? 
-                            `<button class="code-btn" onclick="setGameCode('${m.id}')">📝 Отправить код</button>` : ''}
+                            `<button class="code-btn" onclick="setGameCode('${m.id}')">Отправить код</button>` : ''}
                         ${m.status === 'ready' && m.game_code && (m.team1 === myTeamId || m.team2 === myTeamId) ? 
-                            `<button class="finish-btn" onclick="finishMatch('${m.id}')">🏆 Завершить матч</button>` : ''}
+                            `<button class="finish-btn" onclick="finishMatch('${m.id}')">Завершить матч</button>` : ''}
                         ${(m.created_by == currentUser.telegram_id || isAdmin) && m.status !== 'finished' ? 
-                            `<button class="delete-btn" onclick="deleteMatch('${m.id}')">🗑️ Удалить матч</button>` : ''}
+                            `<button class="delete-btn" onclick="deleteMatch('${m.id}')">Удалить матч</button>` : ''}
                     </div>
                 </div>
             `;
@@ -490,7 +505,7 @@ async function loadMatches() {
     }
 
     if (!availableMatches.length && !myMatches.length) {
-        html += `<div class="card">Нет активных матчей. Создайте новый!</div>`;
+        html += `<div class="card">Нет активных матчей. Создайте новый</div>`;
     }
     content.innerHTML = html;
 }
@@ -528,7 +543,7 @@ async function joinMatch(matchId) {
 }
 
 async function setGameCode(matchId) {
-    const code = prompt('Введите код из Brawl Stars:');
+    const code = prompt('Введите код из Brawl Stars');
     if (!code) return;
     await fetch(`/api/matches/${matchId}/code`, {
         method: 'POST',
@@ -578,7 +593,7 @@ async function loadTournaments() {
     const tournaments = await res.json();
     const content = document.getElementById('content');
     
-    let html = `<button class="create-btn" onclick="showCreateTournamentModal()">🏆 Создать турнир</button>`;
+    let html = `<button class="create-btn" onclick="showCreateTournamentModal()">Создать турнир</button>`;
     html += `<div class="tournaments-list">`;
     
     for (const t of tournaments) {
@@ -594,9 +609,9 @@ async function loadTournaments() {
                 </div>
                 <p>${escapeHtml(t.description || 'Нет описания')}</p>
                 <div class="tournament-stats">
-                    <span>👥 Команд: ${t.teams?.length || 0}</span>
-                    <span class="tournament-status ${t.status}">${t.status === 'registration' ? '📝 Регистрация' : t.status === 'ongoing' ? '⚔️ Идет' : '🏆 Завершен'}</span>
-                    ${t.prize_pool ? `<span>🏅 ${escapeHtml(t.prize_pool)}</span>` : ''}
+                    <span>Команд: ${t.teams?.length || 0}</span>
+                    <span class="tournament-status ${t.status}">${t.status === 'registration' ? 'Регистрация' : t.status === 'ongoing' ? 'Идёт' : 'Завершён'}</span>
+                    ${t.prize_pool ? `<span>Приз: ${escapeHtml(t.prize_pool)}</span>` : ''}
                 </div>
             </div>
         `;
@@ -611,23 +626,23 @@ async function showTournamentDetail(tournamentId) {
     const isOwner = tournament.owner_id == currentUser.telegram_id || isAdmin;
     
     const content = document.getElementById('content');
-    let html = `<button class="back-btn" onclick="loadTournaments()">← Назад</button>`;
+    let html = `<button class="back-btn" onclick="loadTournaments()">Назад</button>`;
     html += `
         <div class="tournament-detail">
             <div class="tournament-banner" style="background-image: url('${tournament.banner_url || ''}'); background-size: cover;">
                 ${!tournament.banner_url ? '<div class="tournament-banner-placeholder">🏆</div>' : ''}
-                ${isOwner ? `<button class="edit-banner-btn" onclick="selectImage('banner', '${tournamentId}', 'tournament')">✏️ Баннер</button>` : ''}
+                ${isOwner ? `<button class="edit-banner-btn" onclick="selectImage('banner', '${tournamentId}', 'tournament')">Изменить баннер</button>` : ''}
             </div>
             <div class="tournament-avatar-container">
                 ${tournament.avatar_url ? `<img src="${tournament.avatar_url}" class="tournament-avatar-img">` : '<div class="tournament-avatar-placeholder">🏆</div>'}
-                ${isOwner ? `<button class="edit-avatar-btn" onclick="selectImage('avatar', '${tournamentId}', 'tournament')">✏️ Аватар</button>` : ''}
+                ${isOwner ? `<button class="edit-avatar-btn" onclick="selectImage('avatar', '${tournamentId}', 'tournament')">✏️</button>` : ''}
             </div>
             <h2>${escapeHtml(tournament.title)}</h2>
             <p class="tournament-description">${escapeHtml(tournament.description || 'Нет описания')}</p>
             <div class="tournament-info">
-                <div class="info-item">👥 Команд: ${tournament.teams?.length || 0}</div>
-                <div class="info-item">🏅 Приз: ${escapeHtml(tournament.prize_pool || 'Не указан')}</div>
-                <div class="info-item">📅 Статус: <span class="tournament-status ${tournament.status}">${tournament.status === 'registration' ? 'Регистрация' : tournament.status === 'ongoing' ? 'Идет' : 'Завершен'}</span></div>
+                <div class="info-item">Команд: ${tournament.teams?.length || 0}</div>
+                <div class="info-item">Приз: ${escapeHtml(tournament.prize_pool || 'Не указан')}</div>
+                <div class="info-item">Статус: <span class="tournament-status ${tournament.status}">${tournament.status === 'registration' ? 'Регистрация' : tournament.status === 'ongoing' ? 'Идёт' : 'Завершён'}</span></div>
             </div>
     `;
     
@@ -636,26 +651,25 @@ async function showTournamentDetail(tournamentId) {
             <div class="tournament-admin-panel">
                 <h3>Управление турниром</h3>
                 <div class="admin-buttons">
-                    <button onclick="changeTournamentStatus('${tournamentId}', 'ongoing')">▶️ Начать турнир</button>
-                    <button onclick="changeTournamentStatus('${tournamentId}', 'finished')">🏁 Завершить турнир</button>
-                    <button onclick="showRegisterTeamModal('${tournamentId}')">➕ Добавить команду</button>
-                    <button onclick="showCreateMatchModal('${tournamentId}')">⚔️ Создать матч</button>
+                    <button onclick="changeTournamentStatus('${tournamentId}', 'ongoing')">Начать турнир</button>
+                    <button onclick="changeTournamentStatus('${tournamentId}', 'finished')">Завершить турнир</button>
+                    <button onclick="showRegisterTeamModal('${tournamentId}')">Добавить команду</button>
+                    <button onclick="showCreateMatchModal('${tournamentId}')">Создать матч</button>
                 </div>
             </div>
         `;
     }
     
-    // Список команд с поиском
     html += `
         <div class="tournament-teams-section">
-            <h3>📋 Участники (${tournament.teams?.length || 0})</h3>
+            <h3>Участники (${tournament.teams?.length || 0})</h3>
             <div class="tournament-teams">
     `;
     
     if (tournament.teams?.length) {
         for (const teamId of tournament.teams) {
             const team = await fetch(`/api/teams/${teamId}`).then(r => r.json());
-            html += `<div class="tournament-team-card">👥 ${escapeHtml(team.name)}</div>`;
+            html += `<div class="tournament-team-card">${escapeHtml(team.name)}</div>`;
         }
     } else {
         html += `<p class="empty-message">Пока нет зарегистрированных команд</p>`;
@@ -663,9 +677,8 @@ async function showTournamentDetail(tournamentId) {
     
     html += `</div></div>`;
     
-    // Матчи
     if (tournament.matches?.length) {
-        html += `<h3>⚔️ Матчи турнира</h3>`;
+        html += `<h3>Матчи турнира</h3>`;
         for (const match of tournament.matches) {
             const canPredict = match.status !== 'finished' && (!match.prediction_deadline || new Date() < new Date(match.prediction_deadline));
             const myPrediction = match.predictions?.find(p => p.user_id == currentUser.telegram_id);
@@ -679,21 +692,21 @@ async function showTournamentDetail(tournamentId) {
                             <span class="team ${match.winner_id === match.team2_id ? 'winner' : ''}">${escapeHtml(match.team2_name)}</span>
                         </div>
                         ${match.score ? `<div class="match-score">Счёт: ${match.score}</div>` : ''}
-                        ${match.prediction_deadline ? `<div class="prediction-deadline">⏰ Прогнозы до: ${new Date(match.prediction_deadline).toLocaleString()}</div>` : ''}
+                        ${match.prediction_deadline ? `<div class="prediction-deadline">Прогнозы до: ${new Date(match.prediction_deadline).toLocaleString()}</div>` : ''}
                     </div>
                     <div class="predictions-stats">
-                        <span>📊 Прогнозы: ${match.team1Votes || 0} vs ${match.team2Votes || 0}</span>
+                        <span>Прогнозы: ${match.team1Votes || 0} vs ${match.team2Votes || 0}</span>
                     </div>
-                    ${canPredict && match.status !== 'finished' ? `
+                    ${canPredict ? `
                         <div class="predict-actions">
-                            <button onclick="makePrediction('${tournamentId}', '${match.id}', '${match.team1_id}')" class="predict-btn">🔮 ${escapeHtml(match.team1_name)}</button>
-                            <button onclick="makePrediction('${tournamentId}', '${match.id}', '${match.team2_id}')" class="predict-btn">🔮 ${escapeHtml(match.team2_name)}</button>
+                            <button onclick="makePrediction('${tournamentId}', '${match.id}', '${match.team1_id}')" class="predict-btn">${escapeHtml(match.team1_name)}</button>
+                            <button onclick="makePrediction('${tournamentId}', '${match.id}', '${match.team2_id}')" class="predict-btn">${escapeHtml(match.team2_name)}</button>
                         </div>
                     ` : ''}
                     ${myPrediction ? `<div class="my-prediction">Ваш прогноз: ${myPrediction.predicted_winner_id === match.team1_id ? match.team1_name : match.team2_name} ${myPrediction.points_awarded ? `(+${myPrediction.points_awarded} очков)` : ''}</div>` : ''}
                     ${isOwner && match.status !== 'finished' ? `
                         <div class="match-admin">
-                            <button onclick="setMatchResult('${tournamentId}', '${match.id}')">📝 Указать результат</button>
+                            <button onclick="setMatchResult('${tournamentId}', '${match.id}')">Указать результат</button>
                         </div>
                     ` : ''}
                 </div>
@@ -711,13 +724,13 @@ function showCreateTournamentModal() {
     modal.className = 'modal';
     modal.innerHTML = `
         <div class="modal-content">
-            <h3>🏆 Создать турнир</h3>
+            <h3>Создать турнир</h3>
             <input type="text" id="tournamentTitle" placeholder="Название турнира">
             <textarea id="tournamentDesc" placeholder="Описание" rows="3"></textarea>
             <input type="text" id="tournamentPrize" placeholder="Призовой фонд">
             <div class="modal-buttons">
-                <button onclick="createTournament()">✅ Создать</button>
-                <button onclick="closeModal()">❌ Отмена</button>
+                <button onclick="createTournament()">Создать</button>
+                <button onclick="closeModal()">Отмена</button>
             </div>
         </div>
     `;
@@ -744,8 +757,8 @@ function showRegisterTeamModal(tournamentId) {
     modal.className = 'modal';
     modal.innerHTML = `
         <div class="modal-content">
-            <h3>➕ Добавить команду</h3>
-            <input type="text" id="teamSearchInput" placeholder="🔍 Поиск команды..." oninput="searchTeamsForTournament()">
+            <h3>Добавить команду</h3>
+            <input type="text" id="teamSearchInput" placeholder="Поиск команды..." oninput="searchTeamsForTournament()">
             <div id="searchResults" style="max-height: 200px; overflow-y: auto;"></div>
             <div class="modal-buttons">
                 <button onclick="closeModal()">Отмена</button>
@@ -788,7 +801,7 @@ function showCreateMatchModal(tournamentId) {
     modal.className = 'modal';
     modal.innerHTML = `
         <div class="modal-content">
-            <h3>⚔️ Создать матч</h3>
+            <h3>Создать матч</h3>
             <input type="text" id="team1Id" placeholder="ID команды 1">
             <input type="text" id="team2Id" placeholder="ID команды 2">
             <input type="number" id="matchRound" placeholder="Раунд">
@@ -848,7 +861,7 @@ async function makePrediction(tournamentId, matchId, predictedWinnerId) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ matchId, predictedWinnerId, userId: currentUser.telegram_id })
     });
-    tg.showAlert('Прогноз сохранён!');
+    tg.showAlert('Прогноз сохранён');
     showTournamentDetail(tournamentId);
 }
 
@@ -857,14 +870,14 @@ async function showLeaderboard() {
     const leaderboard = await res.json();
     const content = document.getElementById('content');
     content.innerHTML = `
-        <button class="back-btn" onclick="showPage('profile')">← Назад</button>
+        <button class="back-btn" onclick="showPage('profile')">Назад</button>
         <div class="leaderboard">
-            <h2>🏆 Таблица лидеров (предикты)</h2>
+            <h2>Таблица лидеров</h2>
             ${leaderboard.map((u, i) => `
                 <div class="leaderboard-item ${u.telegram_id == currentUser.telegram_id ? 'current-user' : ''}">
                     <span class="rank">${i + 1}</span>
                     <span class="username">${escapeHtml(u.username)}</span>
-                    <span class="points">⭐ ${u.prediction_points} очков</span>
+                    <span class="points">${u.prediction_points} очков</span>
                 </div>
             `).join('')}
         </div>
@@ -878,19 +891,19 @@ async function showAdminPanel() {
     const content = document.getElementById('content');
     content.innerHTML = `
         <div class="admin-panel">
-            <h2>👑 Админ панель</h2>
+            <h2>Админ панель</h2>
             <div class="admin-stats-grid">
-                <div class="admin-stat-card">👥 Пользователи: ${stats.totalUsers}</div>
-                <div class="admin-stat-card">👥 Команды: ${stats.totalTeams}</div>
-                <div class="admin-stat-card">⚔️ Матчи: ${stats.totalMatches}</div>
-                <div class="admin-stat-card">🏆 Турниры: ${stats.totalTournaments}</div>
-                <div class="admin-stat-card">🚫 Забанено: ${stats.bannedUsers}</div>
+                <div class="admin-stat-card">Пользователи: ${stats.totalUsers}</div>
+                <div class="admin-stat-card">Команды: ${stats.totalTeams}</div>
+                <div class="admin-stat-card">Матчи: ${stats.totalMatches}</div>
+                <div class="admin-stat-card">Турниры: ${stats.totalTournaments}</div>
+                <div class="admin-stat-card">Забанено: ${stats.bannedUsers}</div>
             </div>
             <div class="admin-tabs">
-                <button class="admin-tab active" onclick="loadAdminUsers()">👥 Пользователи</button>
-                <button class="admin-tab" onclick="loadAdminTeams()">👥 Команды</button>
-                <button class="admin-tab" onclick="loadAdminMatches()">⚔️ Матчи</button>
-                <button class="admin-tab" onclick="loadAdminTournaments()">🏆 Турниры</button>
+                <button class="admin-tab active" onclick="loadAdminUsers()">Пользователи</button>
+                <button class="admin-tab" onclick="loadAdminTeams()">Команды</button>
+                <button class="admin-tab" onclick="loadAdminMatches()">Матчи</button>
+                <button class="admin-tab" onclick="loadAdminTournaments()">Турниры</button>
             </div>
             <div id="adminContent"></div>
         </div>
@@ -903,7 +916,7 @@ async function loadAdminUsers() {
     const users = await res.json();
     const adminContent = document.getElementById('adminContent');
     adminContent.innerHTML = `
-        <h3>👥 Пользователи</h3>
+        <h3>Пользователи</h3>
         ${users.map(u => `
             <div class="admin-user-card">
                 <div>
@@ -926,13 +939,13 @@ async function loadAdminTeams() {
     const teams = await res.json();
     const adminContent = document.getElementById('adminContent');
     adminContent.innerHTML = `
-        <h3>👥 Команды</h3>
+        <h3>Команды</h3>
         ${teams.map(t => `
             <div class="admin-item-card">
                 <div>
                     <strong>${escapeHtml(t.name)}</strong>
                     <span class="item-id">ID: ${t.id}</span>
-                    <span>👥 ${t.members?.length || 0} участников</span>
+                    <span>Участников: ${t.members?.length || 0}</span>
                 </div>
                 <button onclick="deleteTeamAdmin('${t.id}')" class="small-btn danger">Удалить</button>
             </div>
@@ -945,7 +958,7 @@ async function loadAdminMatches() {
     const matches = await res.json();
     const adminContent = document.getElementById('adminContent');
     adminContent.innerHTML = `
-        <h3>⚔️ Матчи</h3>
+        <h3>Матчи</h3>
         ${matches.map(m => `
             <div class="admin-item-card">
                 <div>
@@ -963,13 +976,13 @@ async function loadAdminTournaments() {
     const tournaments = await res.json();
     const adminContent = document.getElementById('adminContent');
     adminContent.innerHTML = `
-        <h3>🏆 Турниры</h3>
+        <h3>Турниры</h3>
         ${tournaments.map(t => `
             <div class="admin-item-card">
                 <div>
                     <strong>${escapeHtml(t.title)}</strong>
                     <span class="item-id">Статус: ${t.status}</span>
-                    <span>👥 ${t.teams?.length || 0} команд</span>
+                    <span>Команд: ${t.teams?.length || 0}</span>
                 </div>
                 <button onclick="deleteTournament('${t.id}')" class="small-btn danger">Удалить</button>
             </div>
@@ -1019,7 +1032,7 @@ async function showPage(page) {
     switch(page) {
         case 'profile':
             await loadProfile();
-            document.getElementById('content').innerHTML = '<div id="teamInfo"></div><button class="leaderboard-btn" onclick="showLeaderboard()">🏆 Таблица лидеров</button>';
+            document.getElementById('content').innerHTML = '<div id="teamInfo"></div><button class="leaderboard-btn" onclick="showLeaderboard()">Таблица лидеров</button>';
             break;
         case 'teams':
             await loadTeams();
@@ -1061,6 +1074,7 @@ window.saveProfile = saveProfile;
 window.closeModal = closeModal;
 window.loadTeams = loadTeams;
 window.showTeamDetail = showTeamDetail;
+window.showUserProfile = showUserProfile;
 window.requestJoinTeam = requestJoinTeam;
 window.acceptMember = acceptMember;
 window.rejectMember = rejectMember;
