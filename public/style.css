@@ -54,6 +54,12 @@ body {
     object-fit: cover;
     background: linear-gradient(135deg, #667eea, #764ba2);
     box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.avatar:hover {
+    transform: scale(1.02);
+    box-shadow: 0 12px 28px rgba(102,126,234,0.3);
 }
 
 .edit-avatar {
@@ -61,6 +67,7 @@ body {
     bottom: 5px;
     right: 5px;
     background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(8px);
     border-radius: 50%;
     width: 32px;
     height: 32px;
@@ -68,9 +75,14 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    transition: all 0.2s;
     border: 1px solid rgba(255,255,255,0.2);
     color: white;
-    font-size: 14px;
+}
+
+.edit-avatar:hover {
+    background: #667eea;
+    transform: scale(1.1);
 }
 
 h2 {
@@ -102,6 +114,42 @@ h2 {
     cursor: pointer;
     font-size: 14px;
     font-weight: 500;
+    transition: all 0.2s;
+}
+
+.edit-profile-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102,126,234,0.4);
+}
+
+/* Карточка команды в профиле */
+.user-team-card {
+    background: rgba(102,126,234,0.15);
+    border: 1px solid rgba(102,126,234,0.3);
+    border-radius: 16px;
+    padding: 12px 20px;
+    margin: 15px 20px;
+    text-align: center;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.user-team-card:hover {
+    background: rgba(102,126,234,0.25);
+    transform: translateY(-2px);
+}
+
+.leaderboard-btn {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    background: linear-gradient(135deg, #f093fb, #667eea);
+    border: none;
+    border-radius: 30px;
+    color: white;
+    cursor: pointer;
+    font-weight: 500;
 }
 
 /* Навигация */
@@ -130,6 +178,7 @@ h2 {
     flex-direction: column;
     align-items: center;
     gap: 4px;
+    transition: all 0.2s;
 }
 
 .nav-btn.active {
@@ -144,18 +193,37 @@ h2 {
     fill: none;
 }
 
+.nav-btn:hover {
+    transform: translateY(-2px);
+}
+
 /* Контент */
 .content {
     padding: 20px;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 /* Карточки */
 .card {
     background: rgba(30, 34, 48, 0.8);
+    backdrop-filter: blur(10px);
     border-radius: 20px;
     padding: 20px;
     margin-bottom: 16px;
     border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.2s;
+    cursor: pointer;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    background: rgba(40, 44, 60, 0.9);
+    border-color: rgba(102,126,234,0.3);
 }
 
 .card h3 {
@@ -170,16 +238,6 @@ h2 {
     margin: 8px 0;
 }
 
-.card button {
-    margin-top: 12px;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-}
-
 /* Кнопка создания */
 .create-btn {
     width: 100%;
@@ -192,6 +250,12 @@ h2 {
     font-weight: 600;
     margin-bottom: 20px;
     cursor: pointer;
+    transition: all 0.2s;
+}
+
+.create-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102,126,234,0.4);
 }
 
 /* Кнопка назад */
@@ -203,6 +267,12 @@ h2 {
     border-radius: 30px;
     color: #667eea;
     cursor: pointer;
+    transition: all 0.2s;
+}
+
+.back-btn:hover {
+    background: rgba(102,126,234,0.3);
+    transform: translateX(-2px);
 }
 
 /* Команды */
@@ -214,7 +284,25 @@ h2 {
 
 .team-card {
     text-align: center;
-    cursor: pointer;
+}
+
+.team-avatar {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(102,126,234,0.1);
+    border-radius: 50%;
+    font-size: 32px;
+}
+
+.team-avatar-img {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    object-fit: cover;
 }
 
 .team-stats {
@@ -254,12 +342,30 @@ h2 {
     bottom: 12px;
     right: 12px;
     background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
     border: none;
     border-radius: 20px;
     padding: 6px 12px;
     color: white;
     font-size: 12px;
     cursor: pointer;
+}
+
+.edit-avatar-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border: none;
+    color: white;
 }
 
 .team-detail-avatar {
@@ -277,51 +383,10 @@ h2 {
     object-fit: cover;
 }
 
-.edit-avatar-btn {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background: rgba(0,0,0,0.6);
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    border: none;
-    color: white;
-}
-
 .team-description {
     text-align: center;
     color: #8e8e9e;
     margin: 12px 0;
-}
-
-.team-info-row {
-    display: flex;
-    gap: 12px;
-    margin: 16px 0;
-}
-
-.team-info-item {
-    flex: 1;
-    background: rgba(30,34,48,0.6);
-    border-radius: 12px;
-    padding: 10px;
-    text-align: center;
-}
-
-.info-label {
-    display: block;
-    font-size: 11px;
-    color: #8e8e9e;
-}
-
-.info-value {
-    font-size: 14px;
-    font-weight: 500;
 }
 
 .team-members {
@@ -335,35 +400,17 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 8px;
+    margin-top: 10px;
 }
 
 .member-item {
     padding: 8px 12px;
     background: rgba(255,255,255,0.05);
     border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    font-size: 14px;
 }
 
-.member-role {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 10px;
-    margin-left: auto;
-}
-
-.member-role.owner {
-    background: #ffd70020;
-    color: #ffd700;
-}
-
-.member-role.you {
-    background: #667eea20;
-    color: #667eea;
-}
-
-.join-team-btn, .leave-team-btn {
+.join-team-btn, .leave-team-btn, .delete-team-btn {
     width: 100%;
     margin-top: 12px;
     padding: 12px;
@@ -383,54 +430,24 @@ h2 {
     color: #ffa500;
 }
 
+.delete-team-btn {
+    background: rgba(255,59,48,0.2);
+    color: #ff3b30;
+}
+
 /* Матчи */
 .match-teams {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 0;
-}
-
-.team-block {
-    flex: 1;
-    text-align: center;
-    padding: 10px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-}
-
-.team-block.your-team {
-    background: rgba(102,126,234,0.2);
-    border: 1px solid rgba(102,126,234,0.5);
-}
-
-.vs {
-    padding: 0 15px;
-    font-weight: bold;
-    color: #667eea;
-}
-
-.match-winner {
-    text-align: center;
-    padding: 10px;
-    background: rgba(0,200,83,0.1);
-    border-radius: 12px;
-    margin: 10px 0;
-    color: #00c853;
-}
-
-.match-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-    flex-wrap: wrap;
+    padding: 10px 0;
 }
 
 .match-status {
+    display: inline-block;
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 12px;
-    display: inline-block;
 }
 
 .match-status.searching {
@@ -443,6 +460,11 @@ h2 {
     color: #00c853;
 }
 
+.match-status.finished {
+    background: #667eea20;
+    color: #667eea;
+}
+
 .match-code {
     text-align: center;
     padding: 12px;
@@ -451,6 +473,17 @@ h2 {
     margin: 12px 0;
     font-size: 18px;
     font-weight: 600;
+}
+
+.match-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+}
+
+.code-btn {
+    background: linear-gradient(135deg, #f093fb, #667eea);
 }
 
 .finish-btn {
@@ -472,10 +505,48 @@ h2 {
 }
 
 /* Турниры */
-.tournament-stats {
+.tournament-header {
     display: flex;
     justify-content: space-between;
-    margin-top: 12px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.tournament-detail {
+    padding: 10px;
+}
+
+.tournament-banner {
+    height: 150px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    margin-bottom: 20px;
+    background-size: cover;
+    background-position: center;
+}
+
+.tournament-banner-placeholder {
+    font-size: 64px;
+}
+
+.tournament-info {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(30,34,48,0.6);
+    border-radius: 16px;
+}
+
+.info-item {
+    flex: 1;
+    text-align: center;
+    font-size: 14px;
 }
 
 .tournament-status {
@@ -494,6 +565,265 @@ h2 {
     color: #5e9bff;
 }
 
+.tournament-status.finished {
+    background: #00c85320;
+    color: #00c853;
+}
+
+.tournament-admin-panel {
+    margin: 20px 0;
+    padding: 15px;
+    background: rgba(30,34,48,0.6);
+    border-radius: 16px;
+}
+
+.admin-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.admin-buttons button {
+    padding: 8px 16px;
+    background: #667eea;
+    border: none;
+    border-radius: 20px;
+    color: white;
+    cursor: pointer;
+}
+
+.tournament-teams {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.tournament-team-card {
+    background: rgba(102,126,234,0.2);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+}
+
+.tournament-match-card {
+    background: rgba(30,34,48,0.6);
+    border-radius: 16px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.match-teams {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.match-teams .team {
+    flex: 1;
+    text-align: center;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 12px;
+}
+
+.match-teams .team.winner {
+    background: rgba(0,200,83,0.2);
+    border: 1px solid #00c853;
+}
+
+.vs {
+    font-weight: bold;
+    color: #667eea;
+}
+
+.match-score {
+    text-align: center;
+    margin-top: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.prediction-deadline {
+    text-align: center;
+    font-size: 12px;
+    color: #ffa500;
+    margin-top: 8px;
+}
+
+.predictions-stats {
+    text-align: center;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.predict-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin: 10px 0;
+}
+
+.predict-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 30px;
+    padding: 8px 16px;
+    color: white;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.my-prediction {
+    text-align: center;
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(102,126,234,0.2);
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.match-admin {
+    margin-top: 10px;
+    text-align: center;
+}
+
+.empty-message {
+    text-align: center;
+    color: #8e8e9e;
+    padding: 20px;
+}
+
+/* Таблица лидеров */
+.leaderboard {
+    padding: 10px;
+}
+
+.leaderboard h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.leaderboard-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: rgba(30,34,48,0.6);
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+.leaderboard-item.current-user {
+    background: rgba(102,126,234,0.3);
+    border: 1px solid #667eea;
+}
+
+.rank {
+    font-weight: bold;
+    font-size: 18px;
+    width: 40px;
+}
+
+.username {
+    flex: 1;
+    padding: 0 10px;
+}
+
+.points {
+    color: #ffd700;
+    font-weight: bold;
+}
+
+/* Админ панель */
+.admin-panel {
+    padding: 20px;
+}
+
+.admin-panel h2 {
+    margin-bottom: 20px;
+}
+
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.admin-stat-card {
+    background: rgba(30,34,48,0.8);
+    padding: 12px;
+    border-radius: 12px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.admin-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.admin-tab {
+    padding: 8px 16px;
+    background: rgba(30,34,48,0.6);
+    border: none;
+    border-radius: 30px;
+    color: #8e8e9e;
+    cursor: pointer;
+}
+
+.admin-tab.active {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.admin-user-card, .admin-item-card {
+    background: rgba(30,34,48,0.6);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.user-status {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+.user-status.active {
+    background: #00c85320;
+    color: #00c853;
+}
+
+.user-status.banned {
+    background: #ff3b3020;
+    color: #ff3b30;
+}
+
+.small-btn {
+    padding: 4px 12px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 12px;
+    background: #667eea;
+    color: white;
+}
+
+.small-btn.danger {
+    background: #ff3b30;
+}
+
 /* Модальное окно */
 .modal {
     position: fixed;
@@ -502,6 +832,7 @@ h2 {
     right: 0;
     bottom: 0;
     background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -522,7 +853,8 @@ h2 {
 }
 
 .modal-content input,
-.modal-content textarea {
+.modal-content textarea,
+.modal-content select {
     width: 100%;
     padding: 12px;
     margin: 8px 0;
@@ -556,91 +888,36 @@ h2 {
     color: #8e8e9e;
 }
 
-/* Админ панель */
-.admin-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.admin-stat-card {
-    background: rgba(30,34,48,0.8);
+/* Кнопки загрузки */
+.upload-btn {
+    width: 100%;
     padding: 12px;
-    border-radius: 12px;
-    text-align: center;
-}
-
-.admin-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.admin-tab {
-    padding: 8px 16px;
-    background: rgba(30,34,48,0.6);
-    border: none;
+    margin: 8px 0;
+    background: rgba(102,126,234,0.2);
+    border: 1px solid rgba(102,126,234,0.5);
     border-radius: 30px;
-    color: #8e8e9e;
+    color: #667eea;
     cursor: pointer;
+    transition: all 0.2s;
 }
 
-.admin-tab.active {
+.upload-btn:hover {
+    background: rgba(102,126,234,0.3);
+    transform: translateY(-1px);
+}
+
+/* Скроллбар */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0a0c10;
+}
+
+::-webkit-scrollbar-thumb {
     background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-}
-
-.admin-user-card, .admin-item-card {
-    background: rgba(30,34,48,0.6);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.user-status {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-}
-
-.user-status.active {
-    background: #00c85320;
-    color: #00c853;
-}
-
-.user-status.banned {
-    background: #ff3b3020;
-    color: #ff3b30;
-}
-
-.small-btn {
-    padding: 4px 12px;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 12px;
-    background: #667eea;
-    color: white;
-}
-
-.small-btn.danger {
-    background: #ff3b30;
-}
-
-.user-team-card {
-    background: rgba(102,126,234,0.15);
-    border: 1px solid rgba(102,126,234,0.3);
-    border-radius: 16px;
-    padding: 12px 20px;
-    margin: 15px 20px;
-    text-align: center;
-    cursor: pointer;
+    border-radius: 10px;
 }
 
 /* Адаптивность */
@@ -666,21 +943,19 @@ h2 {
     .vs {
         padding: 5px 0;
     }
+    .team-banner {
+        height: 120px;
+    }
+    .team-detail-avatar {
+        width: 80px;
+        margin-top: -40px;
+    }
+    .team-detail-img {
+        width: 80px;
+        height: 80px;
+    }
 }
 
 button:active {
     transform: scale(0.97);
 }
-
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: #0a0c10;
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border-radius: 10px;
-    }
