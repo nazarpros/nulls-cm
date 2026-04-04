@@ -62,6 +62,15 @@ async function initDB() {
                 status TEXT DEFAULT 'waiting'
             );
             
+            CREATE TABLE IF NOT EXISTS team_invites (
+                id SERIAL PRIMARY KEY,
+                team_id TEXT NOT NULL,
+                player_id BIGINT NOT NULL,
+                status TEXT DEFAULT 'pending',
+                created_at TIMESTAMP DEFAULT NOW(),
+                UNIQUE(team_id, player_id)
+            );
+            
             CREATE TABLE IF NOT EXISTS tournaments (
                 id TEXT PRIMARY KEY,
                 title TEXT,
@@ -293,7 +302,41 @@ app.get('/api/search/teams', async (req, res) => {
     res.json(teams);
 });
 
-// ==================== МАТЧМЕЙКИНГ (ОЧЕРЕДЬ) ====================
+// Поиск игроков
+app.get('/api/search/users', async (req, res) => {
+    const { q, userId } = req.query;
+    if (!q) return res.json([]);
+    const users = (await pool.query('SELECT telegram_id, username, avatar_url, prediction_points FROM users WHERE username ILIKE $1 AND telegram_id != $2 LIMIT 20', [`%${q}%`, userId || 0])).rows;
+    res.json(users);
+});
+
+// Приглашения в команду
+app.post('/api/teams/invite', async (req, res) => {
+    const { teamId, playerId, inviterId } = req.body;
+    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [teamId])).rows[0];
+    if (!team) return res.status(404).json({ error: 'Команда не найдена' });
+    if (team.owner_id != inviterId) return res.status(403).json({ error: 'Только создатель может приглашать' });
+    
+    await pool.query('INSERT INTO team_invites (team_id, player_id) VALUES ($1, $2) ON CONFLICT DO NOTHING', [teamId, playerId]);
+    res.json({ success: true, message: 'Приглашение отправлено' });
+});
+
+app.get('/api/teams/invites/:playerId', async (req, res) => {
+    const invites = (await pool.query('SELECT ti.*, t.name as team_name FROM team_invites ti JOIN teams t ON ti.team_id = t.id WHERE ti.player_id = $1 AND ti.status = $2', [req.params.playerId, 'pending'])).rows;
+    res.json(invites);
+});
+
+app.post('/api/teams/invite/:teamId/respond', async (req, res) => {
+    const { playerId, accept } = req.body;
+    if (accept) {
+        await pool.query('UPDATE team_invites SET status = $1 WHERE team_id = $2 AND player_id = $3', ['accepted', req.params.teamId, playerId]);
+    } else {
+        await pool.query('UPDATE team_invites SET status = $1 WHERE team_id = $2 AND player_id = $3', ['declined', req.params.teamId, playerId]);
+    }
+    res.json({ success: true });
+});
+
+// ==================== МАТЧМЕЙКИНГ (ОЧЕРЕДЬ С КД) ====================
 app.post('/api/matchmaking/join', async (req, res) => {
     const { teamId, teamName } = req.body;
     try {
