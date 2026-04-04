@@ -446,13 +446,12 @@ async function createTeam() {
     loadTeams();
 }
 
-// ==================== ОБЫЧНЫЕ МАТЧИ 2x2 ====================
+// ==================== МАТЧМЕЙКИНГ (ОЧЕРЕДЬ 2x2) ====================
 async function loadRegularMatches() {
-    const res = await fetch('/api/matches');
-    const matches = await res.json();
     const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
     const userTeam = await userTeamRes.json();
     const myTeamId = userTeam.team?.id;
+    const myTeamName = userTeam.team?.name;
 
     const content = document.getElementById('content');
     if (!myTeamId) {
@@ -460,89 +459,99 @@ async function loadRegularMatches() {
         return;
     }
 
-    const myMatches = matches.filter(m => m.team1 === myTeamId || m.team2 === myTeamId);
-    const availableMatches = matches.filter(m => m.status === 'searching' && m.team1 !== myTeamId && !m.team2);
-
-    let html = `<button class="create-btn" onclick="createMatch()">Создать матч (2x2)</button>`;
-
-    if (availableMatches.length) {
-        html += `<h3>Доступные матчи</h3>`;
-        availableMatches.forEach(m => {
-            html += `
-                <div class="card match-card">
-                    <div class="match-teams"><strong>${escapeHtml(m.team1_name)}</strong> ищет соперника</div>
-                    <button onclick="joinMatch('${m.id}')">Присоединиться</button>
+    const statusRes = await fetch(`/api/matchmaking/status/${myTeamId}`);
+    const status = await statusRes.json();
+    
+    if (status.inMatch) {
+        const match = status.match;
+        const isHost = match.team1 === myTeamId;
+        const isReady = match.status === 'ready';
+        const hasCode = match.game_code;
+        
+        let html = `
+            <div class="card">
+                <div class="match-teams">
+                    <strong>${escapeHtml(match.team1_name)}</strong> vs <strong>${escapeHtml(match.team2_name)}</strong>
                 </div>
-            `;
-        });
-    }
-
-    if (myMatches.length) {
-        html += `<h3>Мои матчи</h3>`;
-        myMatches.forEach(m => {
-            const isHost = m.team1 === myTeamId;
-            html += `
-                <div class="card match-card">
-                    <div class="match-teams">
-                        <strong>${escapeHtml(m.team1_name)}</strong> vs <strong>${escapeHtml(m.team2_name || '???')}</strong>
-                    </div>
-                    <div class="match-status ${m.status}">
-                        ${m.status === 'searching' ? 'Ожидание соперника' : (m.status === 'ready' ? 'Готов к игре' : 'Завершён')}
-                    </div>
-                    ${m.game_code ? `<div class="match-code">Код: <strong>${m.game_code}</strong></div>` : ''}
-                    ${m.winner ? `<div class="match-winner">Победитель: ${m.winner === m.team1 ? m.team1_name : m.team2_name}</div>` : ''}
-                    <div class="match-actions">
-                        ${m.status === 'ready' && !m.game_code && isHost ? 
-                            `<button class="code-btn" onclick="setGameCode('${m.id}')">Отправить код</button>` : ''}
-                        ${m.status === 'ready' && m.game_code && (m.team1 === myTeamId || m.team2 === myTeamId) ? 
-                            `<button class="finish-btn" onclick="finishMatch('${m.id}')">Завершить матч</button>` : ''}
-                        ${(m.created_by == currentUser.telegram_id || isAdmin) && m.status !== 'finished' ? 
-                            `<button class="delete-btn" onclick="deleteMatch('${m.id}')">Удалить матч</button>` : ''}
-                    </div>
+                <div class="match-status ${match.status}">
+                    ${match.status === 'ready' ? 'Матч готов' : (match.status === 'finished' ? 'Завершён' : 'Ожидание')}
                 </div>
-            `;
-        });
+                ${hasCode ? `<div class="match-code">Код: <strong>${match.game_code}</strong></div>` : ''}
+                <div class="match-actions">
+                    ${isReady && !hasCode && isHost ? 
+                        `<button class="code-btn" onclick="sendGameCode('${match.id}')">Отправить код</button>` : ''}
+                    ${isReady && hasCode ? 
+                        `<button class="finish-btn" onclick="finishMatch('${match.id}')">Завершить матч</button>` : ''}
+                    <button class="delete-btn" onclick="leaveMatchmaking()">Выйти из матча</button>
+                </div>
+            </div>
+        `;
+        content.innerHTML = html;
+        return;
     }
-
-    if (!availableMatches.length && !myMatches.length) {
-        html += `<div class="card">Нет активных матчей. Создайте новый</div>`;
+    
+    if (status.inQueue) {
+        content.innerHTML = `
+            <div class="card">
+                <p>⏳ Команда в очереди поиска соперника...</p>
+                <button onclick="leaveMatchmaking()" class="delete-btn">Отменить поиск</button>
+            </div>
+        `;
+        if (window.matchmakingInterval) clearInterval(window.matchmakingInterval);
+        window.matchmakingInterval = setInterval(async () => {
+            const newStatus = await fetch(`/api/matchmaking/status/${myTeamId}`).then(r => r.json());
+            if (newStatus.inMatch || !newStatus.inQueue) {
+                clearInterval(window.matchmakingInterval);
+                loadRegularMatches();
+            }
+        }, 3000);
+        return;
     }
-    content.innerHTML = html;
+    
+    content.innerHTML = `
+        <button class="create-btn" onclick="joinMatchmaking()">🔍 Искать матч (2x2)</button>
+    `;
 }
 
-async function createMatch() {
+async function joinMatchmaking() {
     const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
     const userTeam = await userTeamRes.json();
     if (!userTeam.team) {
         tg.showAlert('Сначала вступите в команду');
         return;
     }
-    await fetch('/api/matches', {
+    const res = await fetch('/api/matchmaking/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ teamId: userTeam.team.id, createdBy: currentUser.telegram_id })
+        body: JSON.stringify({ teamId: userTeam.team.id, teamName: userTeam.team.name })
     });
-    tg.showAlert('Матч создан, ждём соперника');
-    loadRegularMatches();
+    const data = await res.json();
+    if (data.success && data.matched) {
+        tg.showAlert('Соперник найден! Матч создан.');
+        loadRegularMatches();
+    } else if (data.success) {
+        tg.showAlert('Вы встали в очередь поиска');
+        loadRegularMatches();
+    } else {
+        tg.showAlert(data.message || 'Ошибка');
+    }
 }
 
-async function joinMatch(matchId) {
+async function leaveMatchmaking() {
     const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
     const userTeam = await userTeamRes.json();
-    if (!userTeam.team) {
-        tg.showAlert('Сначала вступите в команду');
-        return;
-    }
-    await fetch(`/api/matches/${matchId}/join`, {
+    if (!userTeam.team) return;
+    await fetch('/api/matchmaking/leave', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ teamId: userTeam.team.id })
     });
-    tg.showAlert('Вы присоединились к матчу');
+    if (window.matchmakingInterval) clearInterval(window.matchmakingInterval);
+    tg.showAlert('Вы вышли из очереди');
     loadRegularMatches();
 }
 
-async function setGameCode(matchId) {
+async function sendGameCode(matchId) {
     const code = prompt('Введите код из Brawl Stars');
     if (!code) return;
     await fetch(`/api/matches/${matchId}/code`, {
@@ -576,18 +585,7 @@ async function finishMatch(matchId) {
     loadRegularMatches();
 }
 
-async function deleteMatch(matchId) {
-    if (!confirm('Удалить матч?')) return;
-    await fetch(`/api/matches/${matchId}/delete`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: currentUser.telegram_id })
-    });
-    tg.showAlert('Матч удалён');
-    loadRegularMatches();
-}
-
-// ==================== ТУРНИРЫ (СПИСОК + МАТЧИ ВНУТРИ) ====================
+// ==================== ТУРНИРЫ (ПРОДОЛЖЕНИЕ) ====================
 async function loadTournaments() {
     const res = await fetch('/api/tournaments');
     const tournaments = await res.json();
@@ -679,6 +677,10 @@ async function showTournamentDetail(tournamentId) {
     
     if (tournament.matches?.length) {
         html += `<h3>Матчи турнира</h3>`;
+        const upcomingMatches = tournament.matches.filter(m => m.status !== 'finished' && (!m.prediction_deadline || new Date() < new Date(m.prediction_deadline)));
+        if (upcomingMatches.length > 0) {
+            html += `<button class="create-btn" style="margin-bottom: 15px;" onclick="showBatchPredictModal('${tournamentId}')">📊 Прогнозы на все доступные матчи</button>`;
+        }
         for (const match of tournament.matches) {
             const canPredict = match.status !== 'finished' && (!match.prediction_deadline || new Date() < new Date(match.prediction_deadline));
             const myPrediction = match.predictions?.find(p => p.user_id == currentUser.telegram_id);
@@ -915,6 +917,74 @@ async function makePrediction(tournamentId, matchId, predictedWinnerId) {
     showTournamentDetail(tournamentId);
 }
 
+// ==================== МАССОВЫЕ ПРОГНОЗЫ ====================
+function showBatchPredictModal(tournamentId) {
+    fetch(`/api/tournaments/${tournamentId}/full`).then(r => r.json()).then(tournament => {
+        const upcomingMatches = tournament.matches.filter(m => m.status !== 'finished' && (!m.prediction_deadline || new Date() < new Date(m.prediction_deadline)));
+        if (upcomingMatches.length === 0) {
+            tg.showAlert('Нет доступных матчей для прогнозов');
+            return;
+        }
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 400px;">
+                <h3>Прогнозы на тур</h3>
+                <div id="batchPredictList" style="max-height: 400px; overflow-y: auto;">
+                    ${upcomingMatches.map(match => `
+                        <div class="batch-predict-item" data-match-id="${match.id}">
+                            <div style="margin-bottom: 8px;"><strong>${escapeHtml(match.team1_name)} vs ${escapeHtml(match.team2_name)}</strong></div>
+                            <select class="batch-predict-select" data-match-id="${match.id}">
+                                <option value="">Не выбрано</option>
+                                <option value="${match.team1_id}">${escapeHtml(match.team1_name)}</option>
+                                <option value="${match.team2_id}">${escapeHtml(match.team2_name)}</option>
+                            </select>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="modal-buttons" style="margin-top: 20px;">
+                    <button onclick="submitBatchPredictions('${tournamentId}')">Сохранить прогнозы</button>
+                    <button onclick="closeModal()">Отмена</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    });
+}
+
+async function submitBatchPredictions(tournamentId) {
+    const selects = document.querySelectorAll('.batch-predict-select');
+    const predictions = [];
+    selects.forEach(select => {
+        const matchId = select.getAttribute('data-match-id');
+        const predictedWinnerId = select.value;
+        if (predictedWinnerId) {
+            predictions.push({ matchId, predictedWinnerId });
+        }
+    });
+    
+    if (predictions.length === 0) {
+        tg.showAlert('Выберите хотя бы один прогноз');
+        return;
+    }
+    
+    const response = await fetch(`/api/tournaments/${tournamentId}/batch-predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ predictions, userId: currentUser.telegram_id })
+    });
+    const result = await response.json();
+    if (result.success) {
+        tg.showAlert(result.message);
+        closeModal();
+        showTournamentDetail(tournamentId);
+    } else {
+        tg.showAlert(result.error || 'Ошибка сохранения');
+    }
+}
+
+// ==================== ТАБЛИЦА ЛИДЕРОВ ====================
 async function showLeaderboard() {
     const res = await fetch('/api/leaderboard');
     const leaderboard = await res.json();
@@ -954,6 +1024,7 @@ async function showAdminPanel() {
                 <button class="admin-tab" onclick="loadAdminTeams()">Команды</button>
                 <button class="admin-tab" onclick="loadAdminMatches()">Матчи</button>
                 <button class="admin-tab" onclick="loadAdminTournaments()">Турниры</button>
+                <button class="admin-tab" onclick="loadTournamentAdmins()">Турнирные админы</button>
             </div>
             <div id="adminContent"></div>
         </div>
@@ -1038,6 +1109,49 @@ async function loadAdminTournaments() {
             </div>
         `).join('')}
     `;
+}
+
+async function loadTournamentAdmins() {
+    const res = await fetch('/api/admin/users');
+    const users = await res.json();
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = `
+        <h3>Назначение турнирных администраторов</h3>
+        <div class="admin-users-list">
+            ${users.map(u => `
+                <div class="admin-user-card">
+                    <div>
+                        <strong>${escapeHtml(u.username)}</strong>
+                        <span class="user-id">ID: ${u.telegram_id}</span>
+                        ${u.is_admin ? '<span class="role-badge super-admin">Главный админ</span>' : ''}
+                        ${u.is_tournament_admin ? '<span class="role-badge tournament-admin">Турнирный админ</span>' : ''}
+                    </div>
+                    <div class="admin-user-actions">
+                        ${!u.is_admin ? `
+                            <button onclick="setTournamentAdmin(${u.telegram_id}, ${!u.is_tournament_admin})" class="small-btn">
+                                ${u.is_tournament_admin ? 'Забрать права' : 'Назначить турнирным админом'}
+                            </button>
+                        ` : '<span class="info-text">Главный админ</span>'}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+async function setTournamentAdmin(targetId, makeAdmin) {
+    const res = await fetch('/api/admin/set-tournament-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetId, isTournamentAdmin: makeAdmin, adminId: currentUser.telegram_id })
+    });
+    const result = await res.json();
+    if (result.success) {
+        tg.showAlert(makeAdmin ? 'Пользователь назначен турнирным админом' : 'Права турнирного админа отозваны');
+        loadTournamentAdmins();
+    } else {
+        tg.showAlert(result.error || 'Ошибка');
+    }
 }
 
 window.banUser = async (targetId, ban) => {
@@ -1135,16 +1249,17 @@ window.createTeam = createTeam;
 window.searchTeams = searchTeams;
 window.searchTeamsForTournament = searchTeamsForTournament;
 window.registerTeamToTournament = registerTeamToTournament;
-window.createMatch = createMatch;
-window.joinMatch = joinMatch;
-window.setGameCode = setGameCode;
+window.joinMatchmaking = joinMatchmaking;
+window.leaveMatchmaking = leaveMatchmaking;
+window.sendGameCode = sendGameCode;
 window.finishMatch = finishMatch;
-window.deleteMatch = deleteMatch;
 window.showPage = showPage;
 window.loadAdminUsers = loadAdminUsers;
 window.loadAdminTeams = loadAdminTeams;
 window.loadAdminMatches = loadAdminMatches;
 window.loadAdminTournaments = loadAdminTournaments;
+window.loadTournamentAdmins = loadTournamentAdmins;
+window.setTournamentAdmin = setTournamentAdmin;
 window.banUser = banUser;
 window.deleteUser = deleteUser;
 window.deleteTeamAdmin = deleteTeamAdmin;
@@ -1162,5 +1277,7 @@ window.setMatchResult = setMatchResult;
 window.makePrediction = makePrediction;
 window.showLeaderboard = showLeaderboard;
 window.loadRegularMatches = loadRegularMatches;
+window.showBatchPredictModal = showBatchPredictModal;
+window.submitBatchPredictions = submitBatchPredictions;
 
 initAuth();
