@@ -54,6 +54,14 @@ async function initDB() {
                 created_at TIMESTAMP DEFAULT NOW()
             );
             
+            CREATE TABLE IF NOT EXISTS match_queue (
+                id SERIAL PRIMARY KEY,
+                team_id TEXT NOT NULL,
+                team_name TEXT,
+                joined_at TIMESTAMP DEFAULT NOW(),
+                status TEXT DEFAULT 'waiting'
+            );
+            
             CREATE TABLE IF NOT EXISTS tournaments (
                 id TEXT PRIMARY KEY,
                 title TEXT,
@@ -96,6 +104,8 @@ async function initDB() {
         `);
         
         await pool.query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS prediction_points INTEGER DEFAULT 0;`);
+        await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS banner_url TEXT;`);
+        await pool.query(`ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS avatar_url TEXT;`);
         
         console.log('✅ Database initialized');
     } catch (err) {
@@ -238,18 +248,6 @@ app.get('/api/teams/:id/requests', async (req, res) => {
     res.json(users);
 });
 
-app.post('/api/teams/:id/join', async (req, res) => {
-    const { userId } = req.body;
-    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [req.params.id])).rows[0];
-    if (!team) return res.status(404).json({ error: 'Команда не найдена' });
-    if (team.members.includes(userId.toString())) return res.status(400).json({ error: 'Вы уже в команде' });
-    if (team.members.length >= 10) return res.status(400).json({ error: 'Команда полная' });
-    team.members.push(userId.toString());
-    await pool.query('UPDATE teams SET members = $1 WHERE id = $2', [team.members, req.params.id]);
-    await pool.query('UPDATE users SET team_id = $1 WHERE telegram_id = $2', [req.params.id, userId]);
-    res.json({ success: true });
-});
-
 app.post('/api/teams/:id/leave', async (req, res) => {
     const { userId } = req.body;
     const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [req.params.id])).rows[0];
@@ -295,31 +293,71 @@ app.get('/api/search/teams', async (req, res) => {
     res.json(teams);
 });
 
-// ==================== МАТЧИ (ОБЫЧНЫЕ) ====================
+// ==================== МАТЧМЕЙКИНГ (ОЧЕРЕДЬ) ====================
+app.post('/api/matchmaking/join', async (req, res) => {
+    const { teamId, teamName } = req.body;
+    try {
+        const existing = await pool.query('SELECT * FROM match_queue WHERE team_id = $1 AND status = $2', [teamId, 'waiting']);
+        if (existing.rows.length > 0) {
+            return res.json({ success: false, message: 'Команда уже в очереди' });
+        }
+        const activeMatch = await pool.query('SELECT * FROM matches WHERE (team1 = $1 OR team2 = $1) AND status != $2', [teamId, 'finished']);
+        if (activeMatch.rows.length > 0) {
+            return res.json({ success: false, message: 'Команда уже участвует в матче' });
+        }
+        
+        await pool.query('INSERT INTO match_queue (team_id, team_name) VALUES ($1, $2)', [teamId, teamName]);
+        
+        const waiting = await pool.query('SELECT * FROM match_queue WHERE status = $1 ORDER BY joined_at ASC', ['waiting']);
+        if (waiting.rows.length >= 2) {
+            const teamA = waiting.rows[0];
+            const teamB = waiting.rows[1];
+            const matchId = Date.now().toString();
+            await pool.query(
+                'INSERT INTO matches (id, team1, team2, team1_name, team2_name, created_by, status) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                [matchId, teamA.team_id, teamB.team_id, teamA.team_name, teamB.team_name, teamA.team_id, 'ready']
+            );
+            await pool.query('DELETE FROM match_queue WHERE team_id = $1 OR team_id = $2', [teamA.team_id, teamB.team_id]);
+            return res.json({ success: true, matched: true, matchId });
+        }
+        res.json({ success: true, matched: false });
+    } catch (err) {
+        console.error('Matchmaking join error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/matchmaking/status/:teamId', async (req, res) => {
+    const { teamId } = req.params;
+    try {
+        const activeMatch = await pool.query('SELECT * FROM matches WHERE (team1 = $1 OR team2 = $1) AND status != $2 ORDER BY created_at DESC LIMIT 1', [teamId, 'finished']);
+        if (activeMatch.rows.length > 0) {
+            return res.json({ inMatch: true, match: activeMatch.rows[0] });
+        }
+        const inQueue = await pool.query('SELECT * FROM match_queue WHERE team_id = $1 AND status = $2', [teamId, 'waiting']);
+        if (inQueue.rows.length > 0) {
+            return res.json({ inQueue: true });
+        }
+        res.json({ inQueue: false, inMatch: false });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.post('/api/matchmaking/leave', async (req, res) => {
+    const { teamId } = req.body;
+    try {
+        await pool.query('DELETE FROM match_queue WHERE team_id = $1', [teamId]);
+        res.json({ success: true });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ==================== МАТЧИ ====================
 app.get('/api/matches', async (req, res) => {
     const matches = (await pool.query('SELECT * FROM matches ORDER BY created_at DESC')).rows;
     res.json(matches);
-});
-
-app.post('/api/matches', async (req, res) => {
-    const { teamId, createdBy } = req.body;
-    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [teamId])).rows[0];
-    if (!team) return res.status(404).json({ error: 'Команда не найдена' });
-    const id = Date.now().toString();
-    await pool.query('INSERT INTO matches (id, team1, team1_name, created_by, status) VALUES ($1, $2, $3, $4, $5)', [id, teamId, team.name, createdBy, 'searching']);
-    res.json({ id, team1: teamId, team1Name: team.name, status: 'searching' });
-});
-
-app.post('/api/matches/:id/join', async (req, res) => {
-    const { teamId } = req.body;
-    const match = (await pool.query('SELECT * FROM matches WHERE id = $1', [req.params.id])).rows[0];
-    if (!match) return res.status(404).json({ error: 'Матч не найден' });
-    if (match.status !== 'searching') return res.status(400).json({ error: 'Матч уже начат' });
-    if (match.team2) return res.status(400).json({ error: 'Матч уже занят' });
-    const team = (await pool.query('SELECT * FROM teams WHERE id = $1', [teamId])).rows[0];
-    if (!team) return res.status(404).json({ error: 'Команда не найдена' });
-    await pool.query('UPDATE matches SET team2 = $1, team2_name = $2, status = $3 WHERE id = $4', [teamId, team.name, 'ready', req.params.id]);
-    res.json({ success: true });
 });
 
 app.post('/api/matches/:id/code', async (req, res) => {
@@ -386,6 +424,9 @@ app.get('/api/tournaments/:id/full', async (req, res) => {
 
 app.post('/api/tournaments', async (req, res) => {
     const { createdBy, title, description, prizePool } = req.body;
+    const user = (await pool.query('SELECT is_admin, is_tournament_admin FROM users WHERE telegram_id = $1', [createdBy])).rows[0];
+    if (!user?.is_admin && !user?.is_tournament_admin) return res.status(403).json({ error: 'Нет прав на создание турнира' });
+    
     const id = Date.now().toString();
     await pool.query(`INSERT INTO tournaments (id, title, description, status, teams, created_by, owner_id, prize_pool) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`, 
         [id, title, description || '', 'registration', [], createdBy, createdBy, prizePool || null]);
@@ -464,6 +505,44 @@ app.post('/api/tournaments/:id/predict', async (req, res) => {
     res.json({ success: true });
 });
 
+app.post('/api/tournaments/:id/batch-predict', async (req, res) => {
+    const { predictions, userId } = req.body;
+    const tournamentId = req.params.id;
+    
+    if (!predictions || !predictions.length) {
+        return res.status(400).json({ error: 'Нет прогнозов' });
+    }
+    
+    try {
+        for (const pred of predictions) {
+            const match = (await pool.query('SELECT * FROM tournament_matches WHERE id = $1 AND tournament_id = $2', [pred.matchId, tournamentId])).rows[0];
+            if (!match) {
+                return res.status(404).json({ error: `Матч ${pred.matchId} не найден` });
+            }
+            if (match.status === 'finished') {
+                return res.status(400).json({ error: `Матч ${match.team1_name} vs ${match.team2_name} уже завершён` });
+            }
+            if (match.prediction_deadline && new Date() > new Date(match.prediction_deadline)) {
+                return res.status(400).json({ error: `Время прогнозов на матч ${match.team1_name} vs ${match.team2_name} истекло` });
+            }
+        }
+        
+        for (const pred of predictions) {
+            const existing = (await pool.query('SELECT * FROM predictions WHERE match_id = $1 AND user_id = $2', [pred.matchId, userId])).rows[0];
+            if (existing) {
+                await pool.query('UPDATE predictions SET predicted_winner_id = $1 WHERE id = $2', [pred.predictedWinnerId, existing.id]);
+            } else {
+                await pool.query('INSERT INTO predictions (match_id, user_id, predicted_winner_id) VALUES ($1, $2, $3)', [pred.matchId, userId, pred.predictedWinnerId]);
+            }
+        }
+        
+        res.json({ success: true, message: `Сохранено ${predictions.length} прогнозов` });
+    } catch (err) {
+        console.error('Batch predict error:', err);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 app.get('/api/leaderboard', async (req, res) => {
     const leaderboard = (await pool.query('SELECT telegram_id, username, prediction_points FROM users ORDER BY prediction_points DESC LIMIT 50')).rows;
     res.json(leaderboard);
@@ -471,7 +550,7 @@ app.get('/api/leaderboard', async (req, res) => {
 
 // ==================== АДМИНКА ====================
 app.get('/api/admin/users', async (req, res) => {
-    const users = (await pool.query('SELECT telegram_id, username, is_banned, team_id, prediction_points FROM users')).rows;
+    const users = (await pool.query('SELECT telegram_id, username, is_banned, team_id, prediction_points, is_admin, is_tournament_admin FROM users')).rows;
     res.json(users);
 });
 
