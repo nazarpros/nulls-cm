@@ -1,1244 +1,1460 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    background: #0a0c10;
-    color: #e4e6eb;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', Roboto, sans-serif;
-    overflow-x: hidden;
-    padding-bottom: 70px;
-}
-
-.app {
-    min-height: 100vh;
-    background: linear-gradient(135deg, #0a0c10 0%, #0f172a 100%);
-    position: relative;
-}
-
-/* Шапка профиля */
-.profile-section {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.banner {
-    height: 180px;
-    background: linear-gradient(135deg, #3b82f6 0%, #1e40af 50%, #1e3a8a 100%);
-    background-size: 200% 200%;
-    animation: gradientShift 8s ease infinite;
-    border-radius: 0 0 24px 24px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
-
-@keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-.avatar-container {
-    position: relative;
-    width: 110px;
-    margin: -55px auto 0;
-}
-
-.avatar {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    border: 4px solid #0a0c10;
-    object-fit: cover;
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.avatar:hover {
-    transform: scale(1.02);
-    box-shadow: 0 12px 28px rgba(59,130,246,0.3);
-}
-
-.edit-avatar {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    background: rgba(0,0,0,0.7);
-    backdrop-filter: blur(8px);
-    border-radius: 50%;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid rgba(255,255,255,0.2);
-    color: white;
-    font-size: 14px;
-}
-
-.edit-avatar:hover {
-    background: #3b82f6;
-    transform: scale(1.1);
-}
-
-h2 {
-    text-align: center;
-    margin-top: 12px;
-    font-size: 24px;
-    font-weight: 600;
-    background: linear-gradient(135deg, #fff, #93c5fd);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.description {
-    text-align: center;
-    color: #8e8e9e;
-    padding: 0 20px;
-    margin: 8px 0;
-    font-size: 14px;
-}
-
-.edit-profile-btn {
-    display: block;
-    margin: 12px auto;
-    padding: 10px 24px;
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    transition: all 0.2s;
-}
-
-.edit-profile-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59,130,246,0.4);
-}
-
-.user-team-card {
-    background: rgba(59,130,246,0.15);
-    border: 1px solid rgba(59,130,246,0.3);
-    border-radius: 16px;
-    padding: 12px 20px;
-    margin: 15px 20px;
-    text-align: center;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.user-team-card:hover {
-    background: rgba(59,130,246,0.25);
-    transform: translateY(-2px);
-}
-
-.leaderboard-btn {
-    display: block;
-    margin: 10px auto;
-    padding: 10px 20px;
-    background: linear-gradient(135deg, #10b981, #059669);
-    border: none;
-    border-radius: 30px;
-    color: white;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-/* Навигация */
-.nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    display: flex;
-    background: rgba(10,12,16,0.95);
-    backdrop-filter: blur(20px);
-    padding: 10px 0 20px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    z-index: 100;
-    overflow-x: auto;
-    justify-content: center;
-}
-
-.nav-btn {
-    flex: 1;
-    min-width: 70px;
-    background: none;
-    border: none;
-    color: #8e8e9e;
-    font-size: 11px;
-    padding: 8px 6px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    transition: all 0.2s;
-}
-
-.nav-btn.active {
-    color: #3b82f6;
-}
-
-.nav-btn svg {
-    width: 20px;
-    height: 20px;
-    stroke: currentColor;
-    stroke-width: 2;
-    fill: none;
-}
-
-.nav-btn:hover {
-    transform: translateY(-2px);
-}
-
-/* Контент */
-.content {
-    padding: 20px;
-    animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-/* Карточки */
-.card {
-    background: rgba(30, 34, 48, 0.8);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 16px;
-    border: 1px solid rgba(255,255,255,0.05);
-    transition: all 0.2s;
-    cursor: pointer;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    background: rgba(40, 44, 60, 0.9);
-    border-color: rgba(59,130,246,0.3);
-}
-
-.card h3 {
-    margin-bottom: 8px;
-    font-size: 18px;
-    color: #fff;
-}
-
-.card p {
-    color: #8e8e9e;
-    font-size: 14px;
-    margin: 8px 0;
-}
-
-/* Кнопка создания */
-.create-btn {
-    width: 100%;
-    padding: 14px;
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    color: white;
-    border: none;
-    border-radius: 30px;
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 20px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.create-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59,130,246,0.4);
-}
-
-/* Кнопка назад */
-.back-btn {
-    margin-bottom: 20px;
-    padding: 8px 16px;
-    background: rgba(59,130,246,0.2);
-    border: 1px solid rgba(59,130,246,0.3);
-    border-radius: 30px;
-    color: #3b82f6;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.back-btn:hover {
-    background: rgba(59,130,246,0.3);
-    transform: translateX(-2px);
-}
-
-/* Поиск */
-.search-bar {
-    margin-bottom: 15px;
-}
-
-.search-bar input {
-    width: 100%;
-    padding: 12px 16px;
-    background: rgba(30,34,48,0.8);
-    border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 30px;
-    color: white;
-    font-size: 14px;
-}
-
-.search-bar input:focus {
-    outline: none;
-    border-color: #3b82f6;
-}
-
-.search-result-item {
-    padding: 10px;
-    background: rgba(59,130,246,0.2);
-    border-radius: 12px;
-    margin: 5px 0;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.search-result-item:hover {
-    background: rgba(59,130,246,0.4);
-    transform: translateX(5px);
-}
-
-/* Команды */
-.teams-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.team-card {
-    text-align: center;
-}
-
-.team-avatar {
-    width: 64px;
-    height: 64px;
-    margin: 0 auto 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(59,130,246,0.1);
-    border-radius: 50%;
-    font-size: 32px;
-}
-
-.team-avatar-img {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.team-stats {
-    font-size: 12px;
-    color: #8e8e9e;
-    margin: 8px 0;
-    padding: 4px 12px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 20px;
-    display: inline-block;
-}
-
-.owner-badge {
-    background: linear-gradient(135deg, #ffd700, #ffb347);
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 10px;
-    color: #1a1f2e;
-    display: inline-block;
-    margin-top: 6px;
-}
-
-/* Детальная страница команды */
-.team-detail {
-    position: relative;
-}
-
-.team-banner {
-    height: 150px;
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    border-radius: 16px;
-    position: relative;
-}
-
-.edit-banner-btn, .edit-avatar-btn {
-    position: absolute;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    border: none;
-    border-radius: 20px;
-    padding: 6px 12px;
-    color: white;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.edit-banner-btn {
-    bottom: 12px;
-    right: 12px;
-}
-
-.edit-avatar-btn {
-    bottom: 5px;
-    right: 5px;
-    border-radius: 50%;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.edit-banner-btn:hover, .edit-avatar-btn:hover {
-    background: #3b82f6;
-    transform: scale(1.02);
-}
-
-.team-detail-avatar {
-    position: relative;
-    width: 100px;
-    margin: -50px auto 0;
-    text-align: center;
-}
-
-.team-detail-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 4px solid #0a0c10;
-    object-fit: cover;
-}
-
-.team-description {
-    text-align: center;
-    color: #8e8e9e;
-    margin: 12px 0;
-}
-
-.team-members {
-    margin-top: 20px;
-    padding: 16px;
-    background: rgba(30,34,48,0.6);
-    border-radius: 16px;
-}
-
-.members-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-top: 10px;
-}
-
-.member-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.member-item:hover {
-    background: rgba(59,130,246,0.2);
-    transform: translateX(5px);
-}
-
-.member-avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.member-name {
-    flex: 1;
-    font-size: 14px;
-}
-
-.member-role {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 10px;
-}
-
-.member-role.owner {
-    background: #ffd70020;
-    color: #ffd700;
-}
-
-.member-role.you {
-    background: #3b82f620;
-    color: #3b82f6;
-}
-
-/* Заявки */
-.requests-section {
-    margin-top: 20px;
-    padding: 16px;
-    background: rgba(30,34,48,0.6);
-    border-radius: 16px;
-}
-
-.request-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 10px;
-    margin-bottom: 8px;
-}
-
-.request-item button {
-    padding: 4px 12px;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 12px;
-    margin-left: 8px;
-}
-
-.request-item button:first-of-type {
-    background: #10b981;
-    color: white;
-}
-
-.request-item button:last-of-type {
-    background: #ef4444;
-    color: white;
-}
-
-.request-join-btn, .join-team-btn, .leave-team-btn, .delete-team-btn {
-    width: 100%;
-    margin-top: 12px;
-    padding: 12px;
-    border: none;
-    border-radius: 30px;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.request-join-btn, .join-team-btn {
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    color: white;
-}
-
-.leave-team-btn {
-    background: rgba(245,158,11,0.2);
-    color: #f59e0b;
-}
-
-.delete-team-btn {
-    background: rgba(239,68,68,0.2);
-    color: #ef4444;
-}
-
-/* Матчи */
-.match-teams {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 0;
-}
-
-.match-status {
-    display: inline-block;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-}
-
-.match-status.searching {
-    background: #f59e0b20;
-    color: #f59e0b;
-}
-
-.match-status.ready {
-    background: #10b98120;
-    color: #10b981;
-}
-
-.match-status.finished {
-    background: #3b82f620;
-    color: #3b82f6;
-}
-
-.match-code {
-    text-align: center;
-    padding: 12px;
-    background: rgba(59,130,246,0.2);
-    border-radius: 12px;
-    margin: 12px 0;
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.match-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 12px;
-    flex-wrap: wrap;
-}
-
-.code-btn {
-    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
-}
-
-.finish-btn {
-    background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.delete-btn {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-}
-
-.warning-banner {
-    background: rgba(245,158,11,0.2);
-    border: 1px solid rgba(245,158,11,0.5);
-    border-radius: 12px;
-    padding: 12px;
-    text-align: center;
-    margin-bottom: 20px;
-    color: #f59e0b;
-}
-
-/* Турниры */
-.tournaments-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.tournament-card {
-    cursor: pointer;
-}
-
-.tournament-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 10px;
-}
-
-.tournament-avatar {
-    width: 50px;
-    height: 50px;
-    background: rgba(59,130,246,0.2);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-}
-
-.tournament-avatar-img {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    object-fit: cover;
-}
-
-.tournament-info-header {
-    flex: 1;
-}
-
-.tournament-info-header h3 {
-    margin-bottom: 0;
-}
-
-.tournament-stats {
-    display: flex;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-}
-
-.tournament-status {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-}
-
-.tournament-status.registration {
-    background: #f59e0b20;
-    color: #f59e0b;
-}
-
-.tournament-status.ongoing {
-    background: #3b82f620;
-    color: #3b82f6;
-}
-
-.tournament-status.finished {
-    background: #10b98120;
-    color: #10b981;
-}
-/* Детальная страница турнира */
-.tournament-detail {
-    padding: 10px;
-}
-
-.tournament-banner {
-    height: 150px;
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    border-radius: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 48px;
-    margin-bottom: 20px;
-    background-size: cover;
-    background-position: center;
-    position: relative;
-}
-
-.tournament-banner-placeholder {
-    font-size: 64px;
-}
-
-.tournament-avatar-container {
-    position: relative;
-    width: 100px;
-    margin: -50px auto 0;
-    text-align: center;
-}
-
-.tournament-avatar-img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 4px solid #0a0c10;
-    object-fit: cover;
-}
-
-.tournament-avatar-placeholder {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 4px solid #0a0c10;
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 40px;
-}
-
-.tournament-description {
-    text-align: center;
-    color: #8e8e9e;
-    margin: 12px 0;
-}
-
-.tournament-info {
-    display: flex;
-    gap: 15px;
-    flex-wrap: wrap;
-    margin: 15px 0;
-    padding: 10px;
-    background: rgba(30,34,48,0.6);
-    border-radius: 16px;
-}
-
-.info-item {
-    flex: 1;
-    text-align: center;
-    font-size: 14px;
-}
-
-.tournament-admin-panel {
-    margin: 20px 0;
-    padding: 15px;
-    background: rgba(30,34,48,0.6);
-    border-radius: 16px;
-}
-
-.admin-buttons {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    margin-top: 10px;
-}
-
-.admin-buttons button {
-    padding: 8px 16px;
-    background: #3b82f6;
-    border: none;
-    border-radius: 20px;
-    color: white;
-    cursor: pointer;
-}
-
-.tournament-teams-section {
-    margin: 20px 0;
-}
-
-.tournament-teams {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 10px 0;
-}
-
-.tournament-team-card {
-    background: rgba(59,130,246,0.2);
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 14px;
-}
-
-.tournament-match-card {
-    background: rgba(30,34,48,0.6);
-    border-radius: 16px;
-    padding: 15px;
-    margin: 15px 0;
-}
-
-.match-teams {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-}
-
-.match-teams .team {
-    flex: 1;
-    text-align: center;
-    padding: 10px;
-    background: rgba(255,255,255,0.05);
-    border-radius: 12px;
-}
-
-.match-teams .team.winner {
-    background: rgba(16,185,129,0.2);
-    border: 1px solid #10b981;
-}
-
-.vs {
-    font-weight: bold;
-    color: #3b82f6;
-}
-
-.match-score {
-    text-align: center;
-    margin-top: 10px;
-    font-size: 18px;
-    font-weight: bold;
-}
-
-.prediction-deadline {
-    text-align: center;
-    font-size: 12px;
-    color: #f59e0b;
-    margin-top: 8px;
-}
-
-.predictions-stats {
-    text-align: center;
-    margin: 10px 0;
-    font-size: 14px;
-}
-
-.predict-actions {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-    margin: 10px 0;
-}
-
-.predict-btn {
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    border: none;
-    border-radius: 30px;
-    padding: 8px 16px;
-    color: white;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.my-prediction {
-    text-align: center;
-    margin-top: 10px;
-    padding: 8px;
-    background: rgba(59,130,246,0.2);
-    border-radius: 12px;
-    font-size: 12px;
-}
-
-.match-admin {
-    margin-top: 10px;
-    text-align: center;
-}
-
-.empty-message {
-    text-align: center;
-    color: #8e8e9e;
-    padding: 20px;
-}
-
-.batch-predict-item {
-    background: rgba(30,34,48,0.6);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 12px;
-}
-
-.batch-predict-select {
-    width: 100%;
-    padding: 8px;
-    background: #2a2e3e;
-    border: none;
-    border-radius: 8px;
-    color: white;
-}
-
-/* Таблица лидеров */
-.leaderboard {
-    padding: 10px;
-}
-
-.leaderboard h2 {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.leaderboard-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    background: rgba(30,34,48,0.6);
-    border-radius: 12px;
-    margin-bottom: 8px;
-}
-
-.leaderboard-item.current-user {
-    background: rgba(59,130,246,0.3);
-    border: 1px solid #3b82f6;
-}
-
-.rank {
-    font-weight: bold;
-    font-size: 18px;
-    width: 40px;
-}
-
-.username {
-    flex: 1;
-    padding: 0 10px;
-}
-
-.points {
-    color: #ffd700;
-    font-weight: bold;
-}
-
-/* Админ панель */
-.admin-panel {
-    padding: 20px;
-}
-
-.admin-panel h2 {
-    margin-bottom: 20px;
-}
-
-.admin-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-    gap: 10px;
-    margin-bottom: 20px;
-}
-
-.admin-stat-card {
-    background: rgba(30,34,48,0.8);
-    padding: 12px;
-    border-radius: 12px;
-    text-align: center;
-    font-size: 14px;
-}
-
-.admin-tabs {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-}
-
-.admin-tab {
-    padding: 8px 16px;
-    background: rgba(30,34,48,0.6);
-    border: none;
-    border-radius: 30px;
-    color: #8e8e9e;
-    cursor: pointer;
-}
-
-.admin-tab.active {
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    color: white;
-}
-
-.admin-user-card, .admin-item-card {
-    background: rgba(30,34,48,0.6);
-    border-radius: 12px;
-    padding: 12px;
-    margin-bottom: 8px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-}
-
-.user-status {
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-}
-
-.user-status.active {
-    background: #10b98120;
-    color: #10b981;
-}
-
-.user-status.banned {
-    background: #ef444420;
-    color: #ef4444;
-}
-
-.small-btn {
-    padding: 4px 12px;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    font-size: 12px;
-    background: #3b82f6;
-    color: white;
-}
-
-.small-btn.danger {
-    background: #ef4444;
-}
-
-.role-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 10px;
-    margin-left: 8px;
-}
-
-.role-badge.super-admin {
-    background: #ef4444;
-    color: white;
-}
-
-.role-badge.tournament-admin {
-    background: #f59e0b;
-    color: #1a1f2e;
-}
-
-.info-text {
-    font-size: 12px;
-    color: #8e8e9e;
-}
-
-/* Модальное окно */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0,0,0,0.85);
-    backdrop-filter: blur(12px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal-content {
-    background: #1e2230;
-    padding: 24px;
-    border-radius: 24px;
-    width: 90%;
-    max-width: 320px;
-    border: 1px solid rgba(59,130,246,0.3);
-    max-height: 80vh;
-    overflow-y: auto;
-}
-
-.modal-content h3 {
-    margin-bottom: 16px;
-}
-
-.modal-content input,
-.modal-content textarea,
-.modal-content select {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    background: #2a2e3e;
-    border: none;
-    border-radius: 12px;
-    color: white;
-}
-
-.modal-buttons {
-    display: flex;
-    gap: 12px;
-    margin-top: 20px;
-}
-
-.modal-buttons button {
-    flex: 1;
-    padding: 12px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-}
-
-.modal-buttons button:first-child {
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    color: white;
-}
-
-.modal-buttons button:last-child {
-    background: #2a2e3e;
-    color: #8e8e9e;
-}
-
-/* Кнопки загрузки */
-.upload-btn {
-    width: 100%;
-    padding: 12px;
-    margin: 8px 0;
-    background: rgba(59,130,246,0.2);
-    border: 1px solid rgba(59,130,246,0.5);
-    border-radius: 30px;
-    color: #3b82f6;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.upload-btn:hover {
-    background: rgba(59,130,246,0.3);
-    transform: translateY(-1px);
-}
-
-/* Приглашения */
-.invite-actions {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-
-.invite-actions button {
-    flex: 1;
-    padding: 8px;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-}
-
-.invite-actions button:first-child {
-    background: #10b981;
-    color: white;
-}
-
-/* Скроллбар */
-::-webkit-scrollbar {
-    width: 6px;
-}
-
-::-webkit-scrollbar-track {
-    background: #0a0c10;
-}
-
-::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #3b82f6, #1e40af);
-    border-radius: 10px;
-}
-
-/* Адаптивность */
-@media (max-width: 480px) {
-    .banner {
-        height: 150px;
-    }
-    .avatar {
-        width: 90px;
-        height: 90px;
-    }
-    .avatar-container {
-        width: 90px;
-        margin-top: -45px;
-    }
-    h2 {
-        font-size: 20px;
-    }
-    .match-teams {
-        flex-direction: column;
-        gap: 10px;
-    }
-    .vs {
-        padding: 5px 0;
-    }
-    .team-banner {
-        height: 120px;
-    }
-    .team-detail-avatar {
-        width: 80px;
-        margin-top: -40px;
-    }
-    .team-detail-img {
-        width: 80px;
-        height: 80px;
-    }
-    .admin-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    .nav-btn span {
-        font-size: 9px;
-    }
-    .nav-btn svg {
-        width: 18px;
-        height: 18px;
-    }
-    .nav-btn {
-        min-width: 60px;
-        padding: 8px 4px;
+let currentUser = null;
+let isAdmin = false;
+let isTournamentAdmin = false;
+
+const tg = window.Telegram.WebApp;
+tg.ready();
+tg.expand();
+
+// ==================== CLOUDINARY ====================
+const CLOUD_NAME = 'dew0bxfzo';
+const UPLOAD_PRESET = 'nulls_community';
+
+async function uploadImageToCloudinary(file, type, targetId = null, targetType = 'profile') {
+    tg.showPopup({
+        title: 'Загрузка',
+        message: 'Загружаем изображение...',
+        buttons: [{ type: 'ok' }]
+    });
+    
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+    
+    try {
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.secure_url) {
+            const imageUrl = data.secure_url;
+            
+            if (targetType === 'team') {
+                const teamRes = await fetch(`/api/teams/${targetId}`);
+                const team = await teamRes.json();
+                if (type === 'avatar') {
+                    team.avatar_url = imageUrl;
+                } else {
+                    team.banner_url = imageUrl;
+                }
+                await fetch(`/api/teams/${targetId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(team)
+                });
+                showTeamDetail(targetId);
+            } else if (targetType === 'tournament') {
+                const updates = {};
+                if (type === 'banner') updates.banner_url = imageUrl;
+                if (type === 'avatar') updates.avatar_url = imageUrl;
+                await fetch(`/api/tournaments/${targetId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+                showTournamentDetail(targetId);
+            } else {
+                const updates = {};
+                if (type === 'avatar') {
+                    updates.avatar_url = imageUrl;
+                } else {
+                    updates.banner_url = imageUrl;
+                }
+                await fetch(`/api/profile/${currentUser.telegram_id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updates)
+                });
+                await loadProfile();
+            }
+            tg.showAlert('Изображение загружено');
+        } else {
+            tg.showAlert('Ошибка загрузки');
+        }
+    } catch (error) {
+        console.error(error);
+        tg.showAlert('Ошибка загрузки');
     }
 }
 
-button:active {
-    transform: scale(0.97);
+function selectImage(type, targetId = null, targetType = 'profile') {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            await uploadImageToCloudinary(file, type, targetId, targetType);
+        }
+    };
+    input.click();
 }
+
+// ==================== ВСПОМОГАТЕЛЬНЫЕ ====================
+function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+function closeModal() {
+    const modal = document.querySelector('.modal');
+    if (modal) modal.remove();
+}
+
+async function showUserProfile(userId) {
+    const res = await fetch(`/api/profile/${userId}`);
+    const user = await res.json();
+    tg.showPopup({
+        title: `Профиль ${user.username}`,
+        message: `Очки предиктов: ${user.prediction_points || 0}\n${user.team ? `Команда: ${user.team.name}` : 'Без команды'}`,
+        buttons: [{ type: 'close', text: 'Закрыть' }]
+    });
+}
+
+// ==================== ПОИСК ИГРОКОВ ====================
+async function searchPlayers() {
+    const query = document.getElementById('playerSearchInput')?.value.trim();
+    if (!query) {
+        document.getElementById('searchResults').innerHTML = '';
+        return;
+    }
+    const res = await fetch(`/api/search/users?q=${encodeURIComponent(query)}`);
+    const users = await res.json();
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = users.map(user => `
+        <div class="search-result-item" onclick="showPlayerProfile(${user.telegram_id})">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="${user.avatar_url || 'https://via.placeholder.com/40'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                <div>
+                    <strong>${escapeHtml(user.username)}</strong>
+                    <div style="font-size: 12px; color: #8e8e9e;">Очков: ${user.prediction_points || 0}</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function showPlayerProfile(userId) {
+    const res = await fetch(`/api/profile/${userId}`);
+    const player = await res.json();
+    const currentUserTeam = await fetch(`/api/user/team/${currentUser.telegram_id}`).then(r => r.json());
+    const canInvite = currentUserTeam.team && player.team_id !== currentUserTeam.team.id && !player.team_id;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="profile-banner" style="height: 100px; background-image: url('${player.banner_url || ''}'); background-size: cover; background-position: center; border-radius: 12px; margin-bottom: 10px;">
+                ${!player.banner_url ? '<div style="height: 100px; background: linear-gradient(135deg, #3b82f6, #1e40af); border-radius: 12px;"></div>' : ''}
+            </div>
+            <div style="text-align: center; margin-top: -40px;">
+                <img src="${player.avatar_url || 'https://via.placeholder.com/80'}" style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #1e2230; object-fit: cover;">
+            </div>
+            <h3 style="text-align: center; margin-top: 10px;">${escapeHtml(player.username)}</h3>
+            <p style="text-align: center; color: #8e8e9e;">${escapeHtml(player.description || 'Нет описания')}</p>
+            <div class="player-stats" style="display: flex; justify-content: space-around; margin: 15px 0; padding: 10px; background: rgba(59,130,246,0.2); border-radius: 12px;">
+                <div><strong>⭐ ${player.prediction_points || 0}</strong><br>очков</div>
+                <div><strong>${player.team ? player.team.name : 'Нет команды'}</strong><br>команда</div>
+            </div>
+            ${canInvite ? `
+                <button class="invite-btn" onclick="inviteToTeam(${player.telegram_id})" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 30px; color: white; font-weight: 600; cursor: pointer;">Пригласить в команду</button>
+            ` : ''}
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button onclick="closeModal()">Закрыть</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function inviteToTeam(playerId) {
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
+    const userTeam = await userTeamRes.json();
+    if (!userTeam.team) {
+        tg.showAlert('У вас нет команды');
+        closeModal();
+        return;
+    }
+    const res = await fetch('/api/teams/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId: userTeam.team.id, playerId, inviterId: currentUser.telegram_id })
+    });
+    const result = await res.json();
+    tg.showAlert(result.message);
+    closeModal();
+}
+
+async function loadTeamInvites() {
+    const res = await fetch(`/api/teams/invites/${currentUser.telegram_id}`);
+    const invites = await res.json();
+    const content = document.getElementById('content');
+    if (invites.length === 0) {
+        content.innerHTML = `<div class="card">Нет приглашений в команды</div>`;
+        return;
+    }
+    content.innerHTML = `
+        <h3>Приглашения в команды</h3>
+        ${invites.map(inv => `
+            <div class="card">
+                <p>Команда <strong>${escapeHtml(inv.team_name)}</strong> приглашает вас вступить</p>
+                <div class="invite-actions">
+                    <button onclick="acceptInvite('${inv.team_id}')">Принять</button>
+                    <button onclick="declineInvite('${inv.team_id}')" class="delete-btn">Отклонить</button>
+                </div>
+            </div>
+        `).join('')}
+    `;
+}
+
+async function acceptInvite(teamId) {
+    await fetch(`/api/teams/${teamId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.telegram_id })
+    });
+    await fetch(`/api/teams/invite/${teamId}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: currentUser.telegram_id, accept: true })
+    });
+    tg.showAlert('Вы вступили в команду');
+    await loadProfile();
+    showPage('profile');
+}
+
+async function declineInvite(teamId) {
+    await fetch(`/api/teams/invite/${teamId}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: currentUser.telegram_id, accept: false })
+    });
+    tg.showAlert('Приглашение отклонено');
+    loadTeamInvites();
+}
+
+// ==================== АВТОРИЗАЦИЯ ====================
+async function initAuth() {
+    const user = tg.initDataUnsafe.user;
+    if (!user) return;
+    
+    document.getElementById('username').textContent = user.username || user.first_name;
+    if (user.photo_url) {
+        document.getElementById('avatar').src = user.photo_url;
+    }
+    
+    const response = await fetch('/api/auth/telegram', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            id: user.id,
+            username: user.username || user.first_name,
+            first_name: user.first_name,
+            photo_url: user.photo_url
+        })
+    });
+    
+    const data = await response.json();
+    currentUser = data.user;
+    isAdmin = data.isAdmin || false;
+    isTournamentAdmin = data.isTournamentAdmin || false;
+    
+    await loadProfile();
+    
+    if (isAdmin) showAdminButton();
+    
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.onclick = () => {
+            const page = btn.getAttribute('data-page');
+            if (page) showPage(page);
+        };
+    });
+    
+    showPage('profile');
+}
+
+async function loadProfile() {
+    if (!currentUser) return;
+    
+    const response = await fetch(`/api/profile/${currentUser.telegram_id}`);
+    const profile = await response.json();
+    currentUser = profile;
+    
+    document.getElementById('username').textContent = profile.username;
+    document.getElementById('description').textContent = profile.description || 'Игрок в Brawl Stars';
+    
+    if (profile.avatar_url) {
+        document.getElementById('avatar').src = profile.avatar_url;
+    }
+    
+    if (profile.banner_url) {
+        document.getElementById('banner').style.backgroundImage = `url(${profile.banner_url})`;
+        document.getElementById('banner').style.backgroundSize = 'cover';
+        document.getElementById('banner').style.backgroundPosition = 'center';
+    } else {
+        document.getElementById('banner').style.background = 'linear-gradient(135deg, #3b82f6 0%, #1e40af 50%, #1e3a8a 100%)';
+    }
+    
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
+    const userTeam = await userTeamRes.json();
+    const teamInfo = document.getElementById('teamInfo');
+    if (teamInfo) {
+        if (userTeam.team) {
+            teamInfo.innerHTML = `<div class="user-team-card" onclick="showTeamDetail('${userTeam.team.id}')">Команда: <strong>${escapeHtml(userTeam.team.name)}</strong></div>`;
+        } else {
+            teamInfo.innerHTML = `<div class="user-team-card">Без команды</div>`;
+        }
+    }
+}
+
+function editProfile() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Редактировать профиль</h3>
+            <input type="text" id="editUsername" placeholder="Имя" value="${escapeHtml(currentUser.username || '')}">
+            <textarea id="editDescription" placeholder="О себе" rows="3">${escapeHtml(currentUser.description || '')}</textarea>
+            <button class="upload-btn" onclick="selectImage('avatar'); closeModal();">Загрузить аватарку</button>
+            <button class="upload-btn" onclick="selectImage('banner'); closeModal();">Загрузить баннер</button>
+            <div class="modal-buttons">
+                <button onclick="saveProfile()">Сохранить</button>
+                <button onclick="closeModal()">Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function saveProfile() {
+    const username = document.getElementById('editUsername')?.value.trim();
+    const description = document.getElementById('editDescription')?.value.trim();
+    
+    if (username === 'ghosty') {
+        const res = await fetch('/api/become-admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.telegram_id, secretName: username })
+        });
+        const result = await res.json();
+        if (result.success) {
+            isAdmin = true;
+            tg.showAlert('Теперь вы администратор');
+            showAdminButton();
+        } else {
+            tg.showAlert(result.message);
+        }
+    }
+    
+    const updates = {};
+    if (username && username !== 'ghosty') updates.username = username;
+    if (description) updates.description = description;
+    
+    if (Object.keys(updates).length > 0) {
+        await fetch(`/api/profile/${currentUser.telegram_id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+    }
+    
+    closeModal();
+    await loadProfile();
+    tg.showAlert('Профиль обновлён');
+}
+
+// ==================== КОМАНДЫ ====================
+async function loadTeams() {
+    const res = await fetch('/api/teams');
+    const teams = await res.json();
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <div class="search-bar">
+            <input type="text" id="teamSearch" placeholder="Поиск команд..." oninput="searchTeams()">
+        </div>
+        <button class="create-btn" onclick="showCreateTeamModal()">Создать команду</button>
+        <div id="teamsList" class="teams-grid">
+            ${teams.map(team => `
+                <div class="card team-card" onclick="showTeamDetail('${team.id}')">
+                    <div class="team-avatar">
+                        ${team.avatar_url ? `<img src="${team.avatar_url}" class="team-avatar-img">` : '👥'}
+                    </div>
+                    <h3>${escapeHtml(team.name)}</h3>
+                    <p>${escapeHtml(team.description || 'Нет описания')}</p>
+                    <div class="team-stats">Участников: ${team.members?.length || 0}/10</div>
+                    ${team.owner_id == currentUser.telegram_id ? '<span class="owner-badge">Создатель</span>' : ''}
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+async function searchTeams() {
+    const query = document.getElementById('teamSearch')?.value;
+    if (!query) {
+        loadTeams();
+        return;
+    }
+    const res = await fetch(`/api/search/teams?q=${encodeURIComponent(query)}`);
+    const teams = await res.json();
+    const container = document.getElementById('teamsList');
+    if (container) {
+        container.innerHTML = teams.map(team => `
+            <div class="card team-card" onclick="showTeamDetail('${team.id}')">
+                <div class="team-avatar">
+                    ${team.avatar_url ? `<img src="${team.avatar_url}" class="team-avatar-img">` : '👥'}
+                </div>
+                <h3>${escapeHtml(team.name)}</h3>
+                <p>${escapeHtml(team.description || 'Нет описания')}</p>
+                <div class="team-stats">Участников: ${team.members?.length || 0}/10</div>
+            </div>
+        `).join('');
+    }
+}
+
+async function showTeamDetail(teamId) {
+    const res = await fetch(`/api/teams/${teamId}`);
+    const team = await res.json();
+    const isTeamAdmin = team.owner_id == currentUser.telegram_id;
+    const isMember = team.members?.includes(currentUser.telegram_id.toString());
+    
+    let requestsHtml = '';
+    if (isTeamAdmin) {
+        const requestsRes = await fetch(`/api/teams/${teamId}/requests`);
+        const requests = await requestsRes.json();
+        if (requests.length > 0) {
+            requestsHtml = `
+                <div class="requests-section">
+                    <h3>Заявки на вступление</h3>
+                    ${requests.map(req => `
+                        <div class="request-item">
+                            <span>${escapeHtml(req.username)}</span>
+                            <div>
+                                <button onclick="acceptMember('${teamId}', '${req.telegram_id}')">Принять</button>
+                                <button onclick="rejectMember('${teamId}', '${req.telegram_id}')">Отклонить</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+    }
+    
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <button class="back-btn" onclick="loadTeams()">Назад</button>
+        <div class="team-detail">
+            <div class="team-banner" style="background-image: url('${team.banner_url || ''}'); background-size: cover; background-position: center;">
+                ${!team.banner_url ? '<div class="team-banner-placeholder"></div>' : ''}
+                ${isTeamAdmin ? `<button class="edit-banner-btn" onclick="selectImage('banner', '${teamId}', 'team')">Изменить баннер</button>` : ''}
+            </div>
+            <div class="team-detail-avatar">
+                ${team.avatar_url ? `<img src="${team.avatar_url}" class="team-detail-img">` : '<div class="team-detail-img-placeholder">👥</div>'}
+                ${isTeamAdmin ? `<button class="edit-avatar-btn" onclick="selectImage('avatar', '${teamId}', 'team')">✏️</button>` : ''}
+            </div>
+            <h2>${escapeHtml(team.name)}</h2>
+            <p class="team-description">${escapeHtml(team.description || 'Нет описания')}</p>
+            <div class="team-members">
+                <h3>Участники (${team.membersInfo?.length || 0}/10)</h3>
+                <div class="members-list">
+                    ${(team.membersInfo || []).map(m => `
+                        <div class="member-item" onclick="showUserProfile('${m.telegram_id}')">
+                            <img src="${m.avatar_url || 'https://via.placeholder.com/32'}" class="member-avatar">
+                            <span class="member-name">${escapeHtml(m.username)}</span>
+                            ${m.telegram_id == team.owner_id ? '<span class="member-role owner">Создатель</span>' : ''}
+                            ${m.telegram_id == currentUser.telegram_id ? '<span class="member-role you">Вы</span>' : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            ${requestsHtml}
+            ${!isMember && team.members?.length < 10 ? `<button class="request-join-btn" onclick="requestJoinTeam('${teamId}')">Запросить вступление</button>` : ''}
+            ${isMember && !isTeamAdmin ? `<button class="leave-team-btn" onclick="leaveTeam('${teamId}')">Покинуть команду</button>` : ''}
+            ${isTeamAdmin ? `<button class="delete-team-btn" onclick="deleteTeam('${teamId}')">Удалить команду</button>` : ''}
+        </div>
+    `;
+}
+
+async function requestJoinTeam(teamId) {
+    await fetch(`/api/teams/${teamId}/request-join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.telegram_id })
+    });
+    tg.showAlert('Заявка отправлена владельцу команды');
+}
+
+async function acceptMember(teamId, userId) {
+    await fetch(`/api/teams/${teamId}/accept-member`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ownerId: currentUser.telegram_id })
+    });
+    tg.showAlert('Игрок принят в команду');
+    showTeamDetail(teamId);
+    await loadProfile();
+}
+
+async function rejectMember(teamId, userId) {
+    await fetch(`/api/teams/${teamId}/reject-member`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, ownerId: currentUser.telegram_id })
+    });
+    tg.showAlert('Заявка отклонена');
+    showTeamDetail(teamId);
+}
+
+async function leaveTeam(teamId) {
+    if (!confirm('Покинуть команду?')) return;
+    await fetch(`/api/teams/${teamId}/leave`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.telegram_id })
+    });
+    tg.showAlert('Вы покинули команду');
+    await loadProfile();
+    loadTeams();
+}
+
+async function deleteTeam(teamId) {
+    if (!confirm('Удалить команду навсегда?')) return;
+    await fetch(`/api/teams/${teamId}/delete`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.telegram_id })
+    });
+    tg.showAlert('Команда удалена');
+    await loadProfile();
+    loadTeams();
+}
+
+function showCreateTeamModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Создать команду</h3>
+            <input type="text" id="teamName" placeholder="Название">
+            <textarea id="teamDesc" placeholder="Описание" rows="3"></textarea>
+            <div class="modal-buttons">
+                <button onclick="createTeam()">Создать</button>
+                <button onclick="closeModal()">Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function createTeam() {
+    const name = document.getElementById('teamName')?.value.trim();
+    const description = document.getElementById('teamDesc')?.value.trim();
+    if (!name) return tg.showAlert('Введите название');
+    await fetch('/api/teams', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, description, ownerId: currentUser.telegram_id })
+    });
+    closeModal();
+    tg.showAlert('Команда создана');
+    loadTeams();
+}
+
+// ==================== МАТЧМЕЙКИНГ (ЛЮБОЙ ИГРОК КОМАНДЫ, КД 3 МИНУТЫ) ====================
+let lastMatchSearchTime = 0;
+const MATCH_COOLDOWN = 3 * 60 * 1000; // 3 минуты
+
+async function loadRegularMatches() {
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
+    const userTeam = await userTeamRes.json();
+    const myTeamId = userTeam.team?.id;
+
+    const content = document.getElementById('content');
+    if (!myTeamId) {
+        content.innerHTML = `<div class="warning-banner">Чтобы участвовать в матчах, вступите в команду</div>`;
+        return;
+    }
+
+    const statusRes = await fetch(`/api/matchmaking/status/${myTeamId}`);
+    const status = await statusRes.json();
+    
+    // Проверка КД
+    const now = Date.now();
+    const timeLeft = lastMatchSearchTime + MATCH_COOLDOWN - now;
+    const isOnCooldown = timeLeft > 0;
+    
+    if (status.inMatch) {
+        const match = status.match;
+        const isHost = match.team1 === myTeamId;
+        const isReady = match.status === 'ready';
+        const hasCode = match.game_code;
+        
+        let html = `
+            <div class="card">
+                <div class="match-teams">
+                    <strong>${escapeHtml(match.team1_name)}</strong> vs <strong>${escapeHtml(match.team2_name)}</strong>
+                </div>
+                <div class="match-status ${match.status}">
+                    ${match.status === 'ready' ? 'Матч готов' : (match.status === 'finished' ? 'Завершён' : 'Ожидание')}
+                </div>
+                ${hasCode ? `<div class="match-code">Код: <strong>${match.game_code}</strong></div>` : ''}
+                <div class="match-actions">
+                    ${isReady && !hasCode && isHost ? 
+                        `<button class="code-btn" onclick="sendGameCode('${match.id}')">Отправить код</button>` : ''}
+                    ${isReady && hasCode ? 
+                        `<button class="finish-btn" onclick="finishMatch('${match.id}')">Завершить матч</button>` : ''}
+                    <button class="delete-btn" onclick="leaveMatchmaking()">Выйти из матча</button>
+                </div>
+            </div>
+        `;
+        content.innerHTML = html;
+        return;
+    }
+    
+    if (status.inQueue) {
+        content.innerHTML = `
+            <div class="card">
+                <p>⏳ Команда в очереди поиска соперника...</p>
+                <button onclick="leaveMatchmaking()" class="delete-btn">Отменить поиск</button>
+            </div>
+        `;
+        if (window.matchmakingInterval) clearInterval(window.matchmakingInterval);
+        window.matchmakingInterval = setInterval(async () => {
+            const newStatus = await fetch(`/api/matchmaking/status/${myTeamId}`).then(r => r.json());
+            if (newStatus.inMatch || !newStatus.inQueue) {
+                clearInterval(window.matchmakingInterval);
+                loadRegularMatches();
+            }
+        }, 3000);
+        return;
+    }
+    
+    let cooldownHtml = '';
+    if (isOnCooldown) {
+        const minutes = Math.floor(timeLeft / 60000);
+        const seconds = Math.floor((timeLeft % 60000) / 1000);
+        cooldownHtml = `<div class="warning-banner" style="background: rgba(59,130,246,0.2); color: #3b82f6;">⏱️ Поиск матча будет доступен через ${minutes}:${seconds.toString().padStart(2, '0')}</div>`;
+        // Обновляем таймер
+        setTimeout(() => loadRegularMatches(), 1000);
+    }
+    
+    content.innerHTML = `
+        ${cooldownHtml}
+        <button class="create-btn" onclick="joinMatchmaking()" ${isOnCooldown ? 'disabled style="opacity: 0.5;"' : ''}>🔍 Искать матч (2x2)</button>
+    `;
+}
+
+async function joinMatchmaking() {
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
+    const userTeam = await userTeamRes.json();
+    if (!userTeam.team) {
+        tg.showAlert('Сначала вступите в команду');
+        return;
+    }
+    
+    // Проверка КД
+    const now = Date.now();
+    if (now - lastMatchSearchTime < MATCH_COOLDOWN) {
+        const remaining = Math.ceil((MATCH_COOLDOWN - (now - lastMatchSearchTime)) / 1000);
+        tg.showAlert(`Подождите ${remaining} секунд перед новым поиском`);
+        return;
+    }
+    
+    const res = await fetch('/api/matchmaking/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId: userTeam.team.id, teamName: userTeam.team.name })
+    });
+    const data = await res.json();
+    if (data.success && data.matched) {
+        tg.showAlert('Соперник найден! Матч создан.');
+        loadRegularMatches();
+    } else if (data.success) {
+        tg.showAlert('Вы встали в очередь поиска');
+        loadRegularMatches();
+    } else {
+        tg.showAlert(data.message || 'Ошибка');
+    }
+}
+
+async function leaveMatchmaking() {
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
+    const userTeam = await userTeamRes.json();
+    if (!userTeam.team) return;
+    
+    // Устанавливаем КД при выходе из очереди или матча
+    lastMatchSearchTime = Date.now();
+    
+    await fetch('/api/matchmaking/leave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId: userTeam.team.id })
+    });
+    if (window.matchmakingInterval) clearInterval(window.matchmakingInterval);
+    
+    // Также удаляем активный матч если есть
+    const statusRes = await fetch(`/api/matchmaking/status/${userTeam.team.id}`);
+    const status = await statusRes.json();
+    if (status.inMatch) {
+        await fetch(`/api/matches/${status.match.id}/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.telegram_id })
+        });
+    }
+    
+    tg.showAlert('Вы вышли из поиска. КД 3 минуты');
+    loadRegularMatches();
+}
+
+async function sendGameCode(matchId) {
+    const code = prompt('Введите код из Brawl Stars');
+    if (!code) return;
+    await fetch(`/api/matches/${matchId}/code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ gameCode: code })
+    });
+    tg.showAlert('Код отправлен');
+    loadRegularMatches();
+}
+
+async function finishMatch(matchId) {
+    const result = await tg.showPopup({
+        title: 'Завершить матч',
+        message: 'Какая команда победила?',
+        buttons: [
+            { id: 'team1', type: 'default', text: 'Первая команда' },
+            { id: 'team2', type: 'default', text: 'Вторая команда' },
+            { id: 'cancel', type: 'cancel', text: 'Отмена' }
+        ]
+    });
+    if (result === 'cancel') return;
+    const match = await fetch(`/api/matches/${matchId}`).then(r => r.json());
+    const winner = result === 'team1' ? match.team1 : match.team2;
+    await fetch(`/api/matches/${matchId}/finish`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ winner })
+    });
+    tg.showAlert('Матч завершён');
+    lastMatchSearchTime = Date.now(); // КД после завершения матча
+    loadRegularMatches();
+}
+
+// ==================== ТУРНИРЫ ====================
+async function loadTournaments() {
+    const res = await fetch('/api/tournaments');
+    const tournaments = await res.json();
+    const content = document.getElementById('content');
+    
+    let html = `<button class="create-btn" onclick="showCreateTournamentModal()">Создать турнир</button>`;
+    html += `<div class="tournaments-list">`;
+    
+    for (const t of tournaments) {
+        const isOwner = t.owner_id == currentUser.telegram_id || isAdmin;
+        html += `
+            <div class="card tournament-card" onclick="showTournamentDetail('${t.id}')">
+                <div class="tournament-header">
+                    <div class="tournament-avatar">${t.avatar_url ? `<img src="${t.avatar_url}" class="tournament-avatar-img">` : '🏆'}</div>
+                    <div class="tournament-info-header">
+                        <h3>${escapeHtml(t.title)}</h3>
+                        ${isOwner ? '<span class="owner-badge">Владелец</span>' : ''}
+                    </div>
+                </div>
+                <p>${escapeHtml(t.description || 'Нет описания')}</p>
+                <div class="tournament-stats">
+                    <span>Команд: ${t.teams?.length || 0}</span>
+                    <span class="tournament-status ${t.status}">${t.status === 'registration' ? 'Регистрация' : t.status === 'ongoing' ? 'Идёт' : 'Завершён'}</span>
+                    ${t.prize_pool ? `<span>Приз: ${escapeHtml(t.prize_pool)}</span>` : ''}
+                </div>
+            </div>
+        `;
+    }
+    html += `</div>`;
+    content.innerHTML = html;
+}
+
+async function showTournamentDetail(tournamentId) {
+    const res = await fetch(`/api/tournaments/${tournamentId}/full`);
+    const tournament = await res.json();
+    const isOwner = tournament.owner_id == currentUser.telegram_id || isAdmin;
+    
+    const content = document.getElementById('content');
+    let html = `<button class="back-btn" onclick="loadTournaments()">Назад</button>`;
+    html += `
+        <div class="tournament-detail">
+            <div class="tournament-banner" style="background-image: url('${tournament.banner_url || ''}'); background-size: cover;">
+                ${!tournament.banner_url ? '<div class="tournament-banner-placeholder">🏆</div>' : ''}
+                ${isOwner ? `<button class="edit-banner-btn" onclick="selectImage('banner', '${tournamentId}', 'tournament')">Изменить баннер</button>` : ''}
+            </div>
+            <div class="tournament-avatar-container">
+                ${tournament.avatar_url ? `<img src="${tournament.avatar_url}" class="tournament-avatar-img">` : '<div class="tournament-avatar-placeholder">🏆</div>'}
+                ${isOwner ? `<button class="edit-avatar-btn" onclick="selectImage('avatar', '${tournamentId}', 'tournament')">✏️</button>` : ''}
+            </div>
+            <h2>${escapeHtml(tournament.title)}</h2>
+            <p class="tournament-description">${escapeHtml(tournament.description || 'Нет описания')}</p>
+            <div class="tournament-info">
+                <div class="info-item">Команд: ${tournament.teams?.length || 0}</div>
+                <div class="info-item">Приз: ${escapeHtml(tournament.prize_pool || 'Не указан')}</div>
+                <div class="info-item">Статус: <span class="tournament-status ${tournament.status}">${tournament.status === 'registration' ? 'Регистрация' : tournament.status === 'ongoing' ? 'Идёт' : 'Завершён'}</span></div>
+            </div>
+    `;
+    
+    if (isOwner) {
+        html += `
+            <div class="tournament-admin-panel">
+                <h3>Управление турниром</h3>
+                <div class="admin-buttons">
+                    <button onclick="changeTournamentStatus('${tournamentId}', 'ongoing')">Начать турнир</button>
+                    <button onclick="changeTournamentStatus('${tournamentId}', 'finished')">Завершить турнир</button>
+                    <button onclick="showRegisterTeamModal('${tournamentId}')">Добавить команду</button>
+                    <button onclick="showCreateMatchModal('${tournamentId}')">Создать матч</button>
+                </div>
+            </div>
+        `;
+    }
+    
+    html += `
+        <div class="tournament-teams-section">
+            <h3>Участники (${tournament.teams?.length || 0})</h3>
+            <div class="tournament-teams">
+    `;
+    
+    if (tournament.teams?.length) {
+        for (const teamId of tournament.teams) {
+            const team = await fetch(`/api/teams/${teamId}`).then(r => r.json());
+            html += `<div class="tournament-team-card">${escapeHtml(team.name)}</div>`;
+        }
+    } else {
+        html += `<p class="empty-message">Пока нет зарегистрированных команд</p>`;
+    }
+    
+    html += `</div></div>`;
+    
+    if (tournament.matches?.length) {
+        html += `<h3>Матчи турнира</h3>`;
+        const upcomingMatches = tournament.matches.filter(m => m.status !== 'finished' && (!m.prediction_deadline || new Date() < new Date(m.prediction_deadline)));
+        if (upcomingMatches.length > 0) {
+            html += `<button class="create-btn" style="margin-bottom: 15px;" onclick="showBatchPredictModal('${tournamentId}')">📊 Прогнозы на все доступные матчи</button>`;
+        }
+        for (const match of tournament.matches) {
+            const canPredict = match.status !== 'finished' && (!match.prediction_deadline || new Date() < new Date(match.prediction_deadline));
+            const myPrediction = match.predictions?.find(p => p.user_id == currentUser.telegram_id);
+            
+            html += `
+                <div class="tournament-match-card">
+                    <div class="match-header">
+                        <div class="match-teams">
+                            <span class="team ${match.winner_id === match.team1_id ? 'winner' : ''}">${escapeHtml(match.team1_name)}</span>
+                            <span class="vs">VS</span>
+                            <span class="team ${match.winner_id === match.team2_id ? 'winner' : ''}">${escapeHtml(match.team2_name)}</span>
+                        </div>
+                        ${match.score ? `<div class="match-score">Счёт: ${match.score}</div>` : ''}
+                        ${match.prediction_deadline ? `<div class="prediction-deadline">Прогнозы до: ${new Date(match.prediction_deadline).toLocaleString()}</div>` : ''}
+                    </div>
+                    <div class="predictions-stats">
+                        <span>Прогнозы: ${match.team1Votes || 0} vs ${match.team2Votes || 0}</span>
+                    </div>
+                    ${canPredict ? `
+                        <div class="predict-actions">
+                            <button onclick="makePrediction('${tournamentId}', '${match.id}', '${match.team1_id}')" class="predict-btn">${escapeHtml(match.team1_name)}</button>
+                            <button onclick="makePrediction('${tournamentId}', '${match.id}', '${match.team2_id}')" class="predict-btn">${escapeHtml(match.team2_name)}</button>
+                        </div>
+                    ` : ''}
+                    ${myPrediction ? `<div class="my-prediction">Ваш прогноз: ${myPrediction.predicted_winner_id === match.team1_id ? match.team1_name : match.team2_name} ${myPrediction.points_awarded ? `(+${myPrediction.points_awarded} очков)` : ''}</div>` : ''}
+                    ${isOwner && match.status !== 'finished' ? `
+                        <div class="match-admin">
+                            <button onclick="showSetResultModal('${tournamentId}', '${match.id}', '${match.team1_id}', '${match.team2_id}', '${escapeHtml(match.team1_name)}', '${escapeHtml(match.team2_name)}')">Указать результат</button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+    } else {
+        html += `<p class="empty-message">Матчи ещё не созданы</p>`;
+    }
+    
+    content.innerHTML = html;
+}
+
+function showCreateTournamentModal() {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Создать турнир</h3>
+            <input type="text" id="tournamentTitle" placeholder="Название турнира">
+            <textarea id="tournamentDesc" placeholder="Описание" rows="3"></textarea>
+            <input type="text" id="tournamentPrize" placeholder="Призовой фонд">
+            <div class="modal-buttons">
+                <button onclick="createTournament()">Создать</button>
+                <button onclick="closeModal()">Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function createTournament() {
+    const title = document.getElementById('tournamentTitle')?.value.trim();
+    const description = document.getElementById('tournamentDesc')?.value.trim();
+    const prizePool = document.getElementById('tournamentPrize')?.value.trim();
+    if (!title) return tg.showAlert('Введите название');
+    await fetch('/api/tournaments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ createdBy: currentUser.telegram_id, title, description, prizePool })
+    });
+    closeModal();
+    tg.showAlert('Турнир создан');
+    loadTournaments();
+}
+
+function showRegisterTeamModal(tournamentId) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Добавить команду</h3>
+            <input type="text" id="teamSearchInput" placeholder="Поиск команды..." oninput="searchTeamsForTournament()">
+            <div id="searchResults" style="max-height: 200px; overflow-y: auto;"></div>
+            <div class="modal-buttons">
+                <button onclick="closeModal()">Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    window.currentTournamentId = tournamentId;
+}
+
+async function searchTeamsForTournament() {
+    const query = document.getElementById('teamSearchInput')?.value;
+    if (!query) {
+        document.getElementById('searchResults').innerHTML = '';
+        return;
+    }
+    const res = await fetch(`/api/search/teams?q=${encodeURIComponent(query)}`);
+    const teams = await res.json();
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = teams.map(team => `
+        <div class="search-result-item" onclick="registerTeamToTournament('${window.currentTournamentId}', '${team.id}')">
+            <strong>${escapeHtml(team.name)}</strong> (${team.members?.length || 0}/10)
+        </div>
+    `).join('');
+}
+
+async function registerTeamToTournament(tournamentId, teamId) {
+    await fetch(`/api/tournaments/${tournamentId}/register-team`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId, userId: currentUser.telegram_id })
+    });
+    closeModal();
+    tg.showAlert('Команда добавлена');
+    showTournamentDetail(tournamentId);
+}
+
+function showCreateMatchModal(tournamentId) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Создать матч в турнире</h3>
+            <select id="team1Select">
+                <option value="">Выберите команду 1</option>
+            </select>
+            <select id="team2Select">
+                <option value="">Выберите команду 2</option>
+            </select>
+            <input type="number" id="matchRound" placeholder="Раунд" value="1">
+            <input type="datetime-local" id="predictionDeadline">
+            <div class="modal-buttons">
+                <button onclick="createMatchInTournament('${tournamentId}')">Создать матч</button>
+                <button onclick="closeModal()">Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    fetch(`/api/tournaments/${tournamentId}/full`).then(r => r.json()).then(tournament => {
+        const team1Select = document.getElementById('team1Select');
+        const team2Select = document.getElementById('team2Select');
+        
+        tournament.teams.forEach(teamId => {
+            fetch(`/api/teams/${teamId}`).then(r => r.json()).then(team => {
+                const option1 = document.createElement('option');
+                option1.value = team.id;
+                option1.textContent = team.name;
+                team1Select.appendChild(option1);
+                
+                const option2 = document.createElement('option');
+                option2.value = team.id;
+                option2.textContent = team.name;
+                team2Select.appendChild(option2);
+            });
+        });
+    });
+}
+
+async function createMatchInTournament(tournamentId) {
+    const team1Id = document.getElementById('team1Select')?.value;
+    const team2Id = document.getElementById('team2Select')?.value;
+    const round = parseInt(document.getElementById('matchRound')?.value) || 1;
+    const predictionDeadline = document.getElementById('predictionDeadline')?.value;
+    
+    if (!team1Id || !team2Id) return tg.showAlert('Выберите обе команды');
+    if (team1Id === team2Id) return tg.showAlert('Команды должны быть разными');
+    
+    await fetch(`/api/tournaments/${tournamentId}/create-match`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ team1Id, team2Id, round, predictionDeadline: predictionDeadline ? new Date(predictionDeadline).toISOString() : null, userId: currentUser.telegram_id })
+    });
+    closeModal();
+    tg.showAlert('Матч создан');
+    showTournamentDetail(tournamentId);
+}
+
+async function changeTournamentStatus(tournamentId, status) {
+    await fetch(`/api/tournaments/${tournamentId}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, userId: currentUser.telegram_id })
+    });
+    tg.showAlert(`Статус изменён на ${status}`);
+    showTournamentDetail(tournamentId);
+}
+
+function showSetResultModal(tournamentId, matchId, team1Id, team2Id, team1Name, team2Name) {
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h3>Указать результат матча</h3>
+            <input type="text" id="matchScore" placeholder="Счёт (например: 2:1)">
+            <select id="winnerSelect">
+                <option value="">Выберите победителя</option>
+                <option value="${team1Id}">${team1Name}</option>
+                <option value="${team2Id}">${team2Name}</option>
+            </select>
+            <div class="modal-buttons">
+                <button onclick="setMatchResult('${tournamentId}', '${matchId}')">Сохранить</button>
+                <button onclick="closeModal()">Отмена</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function setMatchResult(tournamentId, matchId) {
+    const score = document.getElementById('matchScore')?.value.trim();
+    const winnerId = document.getElementById('winnerSelect')?.value;
+    
+    if (!score) return tg.showAlert('Введите счёт');
+    if (!winnerId) return tg.showAlert('Выберите победителя');
+    
+    await fetch(`/api/tournaments/${tournamentId}/update-match-result`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId, score, winnerId, userId: currentUser.telegram_id })
+    });
+    closeModal();
+    tg.showAlert('Результат сохранён, очки начислены');
+    showTournamentDetail(tournamentId);
+}
+
+async function makePrediction(tournamentId, matchId, predictedWinnerId) {
+    await fetch(`/api/tournaments/${tournamentId}/predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matchId, predictedWinnerId, userId: currentUser.telegram_id })
+    });
+    tg.showAlert('Прогноз сохранён');
+    showTournamentDetail(tournamentId);
+}
+
+// ==================== МАССОВЫЕ ПРОГНОЗЫ ====================
+function showBatchPredictModal(tournamentId) {
+    fetch(`/api/tournaments/${tournamentId}/full`).then(r => r.json()).then(tournament => {
+        const upcomingMatches = tournament.matches.filter(m => m.status !== 'finished' && (!m.prediction_deadline || new Date() < new Date(m.prediction_deadline)));
+        if (upcomingMatches.length === 0) {
+            tg.showAlert('Нет доступных матчей для прогнозов');
+            return;
+        }
+        
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 400px;">
+                <h3>Прогнозы на тур</h3>
+                <div id="batchPredictList" style="max-height: 400px; overflow-y: auto;">
+                    ${upcomingMatches.map(match => `
+                        <div class="batch-predict-item" data-match-id="${match.id}">
+                            <div style="margin-bottom: 8px;"><strong>${escapeHtml(match.team1_name)} vs ${escapeHtml(match.team2_name)}</strong></div>
+                            <select class="batch-predict-select" data-match-id="${match.id}">
+                                <option value="">Не выбрано</option>
+                                <option value="${match.team1_id}">${escapeHtml(match.team1_name)}</option>
+                                <option value="${match.team2_id}">${escapeHtml(match.team2_name)}</option>
+                            </select>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="modal-buttons" style="margin-top: 20px;">
+                    <button onclick="submitBatchPredictions('${tournamentId}')">Сохранить прогнозы</button>
+                    <button onclick="closeModal()">Отмена</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    });
+}
+
+async function submitBatchPredictions(tournamentId) {
+    const selects = document.querySelectorAll('.batch-predict-select');
+    const predictions = [];
+    selects.forEach(select => {
+        const matchId = select.getAttribute('data-match-id');
+        const predictedWinnerId = select.value;
+        if (predictedWinnerId) {
+            predictions.push({ matchId, predictedWinnerId });
+        }
+    });
+    
+    if (predictions.length === 0) {
+        tg.showAlert('Выберите хотя бы один прогноз');
+        return;
+    }
+    
+    const response = await fetch(`/api/tournaments/${tournamentId}/batch-predict`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ predictions, userId: currentUser.telegram_id })
+    });
+    const result = await response.json();
+    if (result.success) {
+        tg.showAlert(result.message);
+        closeModal();
+        showTournamentDetail(tournamentId);
+    } else {
+        tg.showAlert(result.error || 'Ошибка сохранения');
+    }
+}
+
+// ==================== ТАБЛИЦА ЛИДЕРОВ ====================
+async function showLeaderboard() {
+    const res = await fetch('/api/leaderboard');
+    const leaderboard = await res.json();
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <button class="back-btn" onclick="showPage('profile')">Назад</button>
+        <div class="leaderboard">
+            <h2>Таблица лидеров</h2>
+            ${leaderboard.map((u, i) => `
+                <div class="leaderboard-item ${u.telegram_id == currentUser.telegram_id ? 'current-user' : ''}">
+                    <span class="rank">${i + 1}</span>
+                    <span class="username">${escapeHtml(u.username)}</span>
+                    <span class="points">${u.prediction_points} очков</span>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+// ==================== АДМИНКА ====================
+async function showAdminPanel() {
+    const statsRes = await fetch('/api/admin/stats');
+    const stats = await statsRes.json();
+    const content = document.getElementById('content');
+    content.innerHTML = `
+        <div class="admin-panel">
+            <h2>Админ панель</h2>
+            <div class="admin-stats-grid">
+                <div class="admin-stat-card">Пользователи: ${stats.totalUsers}</div>
+                <div class="admin-stat-card">Команды: ${stats.totalTeams}</div>
+                <div class="admin-stat-card">Матчи: ${stats.totalMatches}</div>
+                <div class="admin-stat-card">Турниры: ${stats.totalTournaments}</div>
+                <div class="admin-stat-card">Забанено: ${stats.bannedUsers}</div>
+            </div>
+            <div class="admin-tabs">
+                <button class="admin-tab active" onclick="loadAdminUsers()">Пользователи</button>
+                <button class="admin-tab" onclick="loadAdminTeams()">Команды</button>
+                <button class="admin-tab" onclick="loadAdminMatches()">Матчи</button>
+                <button class="admin-tab" onclick="loadAdminTournaments()">Турниры</button>
+                <button class="admin-tab" onclick="loadTournamentAdmins()">Турнирные админы</button>
+            </div>
+            <div id="adminContent"></div>
+        </div>
+    `;
+    loadAdminUsers();
+}
+
+async function loadAdminUsers() {
+    const res = await fetch('/api/admin/users');
+    const users = await res.json();
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = `
+        <h3>Пользователи</h3>
+        ${users.map(u => `
+            <div class="admin-user-card">
+                <div>
+                    <strong>${escapeHtml(u.username)}</strong>
+                    <span class="user-id">ID: ${u.telegram_id}</span>
+                    ${u.team_id ? `<span class="team-badge">В команде</span>` : ''}
+                </div>
+                <div class="admin-user-actions">
+                    <span class="user-status ${u.is_banned ? 'banned' : 'active'}">${u.is_banned ? 'Забанен' : 'Активен'}</span>
+                    <button onclick="banUser(${u.telegram_id}, ${!u.is_banned})" class="small-btn">${u.is_banned ? 'Разбанить' : 'Забанить'}</button>
+                    <button onclick="deleteUser(${u.telegram_id})" class="small-btn danger">Удалить</button>
+                </div>
+            </div>
+        `).join('')}
+    `;
+}
+
+async function loadAdminTeams() {
+    const res = await fetch('/api/admin/teams');
+    const teams = await res.json();
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = `
+        <h3>Команды</h3>
+        ${teams.map(t => `
+            <div class="admin-item-card">
+                <div>
+                    <strong>${escapeHtml(t.name)}</strong>
+                    <span class="item-id">ID: ${t.id}</span>
+                    <span>Участников: ${t.members?.length || 0}</span>
+                </div>
+                <button onclick="deleteTeamAdmin('${t.id}')" class="small-btn danger">Удалить</button>
+            </div>
+        `).join('')}
+    `;
+}
+
+async function loadAdminMatches() {
+    const res = await fetch('/api/admin/matches');
+    const matches = await res.json();
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = `
+        <h3>Матчи</h3>
+        ${matches.map(m => `
+            <div class="admin-item-card">
+                <div>
+                    <strong>${escapeHtml(m.team1_name)} vs ${escapeHtml(m.team2_name || '?')}</strong>
+                    <span class="item-id">Статус: ${m.status}</span>
+                </div>
+                <button onclick="deleteMatchAdmin('${m.id}')" class="small-btn danger">Удалить</button>
+            </div>
+        `).join('')}
+    `;
+}
+
+async function loadAdminTournaments() {
+    const res = await fetch('/api/admin/tournaments');
+    const tournaments = await res.json();
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = `
+        <h3>Турниры</h3>
+        ${tournaments.map(t => `
+            <div class="admin-item-card">
+                <div>
+                    <strong>${escapeHtml(t.title)}</strong>
+                    <span class="item-id">Статус: ${t.status}</span>
+                    <span>Команд: ${t.teams?.length || 0}</span>
+                </div>
+                <button onclick="deleteTournament('${t.id}')" class="small-btn danger">Удалить</button>
+            </div>
+        `).join('')}
+    `;
+}
+
+async function loadTournamentAdmins() {
+    const res = await fetch('/api/admin/users');
+    const users = await res.json();
+    const adminContent = document.getElementById('adminContent');
+    adminContent.innerHTML = `
+        <h3>Назначение турнирных администраторов</h3>
+        <div class="admin-users-list">
+            ${users.map(u => `
+                <div class="admin-user-card">
+                    <div>
+                        <strong>${escapeHtml(u.username)}</strong>
+                        <span class="user-id">ID: ${u.telegram_id}</span>
+                        ${u.is_admin ? '<span class="role-badge super-admin">Главный админ</span>' : ''}
+                        ${u.is_tournament_admin ? '<span class="role-badge tournament-admin">Турнирный админ</span>' : ''}
+                    </div>
+                    <div class="admin-user-actions">
+                        ${!u.is_admin ? `
+                            <button onclick="setTournamentAdmin(${u.telegram_id}, ${!u.is_tournament_admin})" class="small-btn">
+                                ${u.is_tournament_admin ? 'Забрать права' : 'Назначить турнирным админом'}
+                            </button>
+                        ` : '<span class="info-text">Главный админ</span>'}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+async function setTournamentAdmin(targetId, makeAdmin) {
+    const res = await fetch('/api/admin/set-tournament-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ targetId, isTournamentAdmin: makeAdmin, adminId: currentUser.telegram_id })
+    });
+    const result = await res.json();
+    if (result.success) {
+        tg.showAlert(makeAdmin ? 'Пользователь назначен турнирным админом' : 'Права турнирного админа отозваны');
+        loadTournamentAdmins();
+    } else {
+        tg.showAlert(result.error || 'Ошибка');
+    }
+}
+
+window.banUser = async (targetId, ban) => {
+    await fetch('/api/admin/ban', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetId, ban }) });
+    tg.showAlert(ban ? 'Пользователь забанен' : 'Пользователь разбанен');
+    loadAdminUsers();
+};
+window.deleteUser = async (targetId) => {
+    if (!confirm('Удалить пользователя навсегда?')) return;
+    await fetch('/api/admin/delete-user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ targetId }) });
+    tg.showAlert('Пользователь удалён');
+    loadAdminUsers();
+};
+window.deleteTeamAdmin = async (teamId) => {
+    if (!confirm('Удалить команду?')) return;
+    await fetch('/api/admin/delete-team', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ teamId }) });
+    tg.showAlert('Команда удалена');
+    loadAdminTeams();
+};
+window.deleteMatchAdmin = async (matchId) => {
+    if (!confirm('Удалить матч?')) return;
+    await fetch('/api/admin/delete-match', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ matchId }) });
+    tg.showAlert('Матч удалён');
+    loadAdminMatches();
+};
+window.deleteTournament = async (tournamentId) => {
+    if (!confirm('Удалить турнир?')) return;
+    await fetch('/api/admin/delete-tournament', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tournamentId }) });
+    tg.showAlert('Турнир удалён');
+    loadAdminTournaments();
+};
+
+// ==================== НАВИГАЦИЯ ====================
+async function showPage(page) {
+    const profileContainer = document.getElementById('profileContainer');
+    if (page === 'profile') {
+        profileContainer.style.display = 'block';
+        await loadProfile();
+        document.getElementById('content').innerHTML = `
+            <div id="teamInfo"></div>
+            <div class="search-bar" style="margin-top: 20px;">
+                <input type="text" id="playerSearchInput" placeholder="🔍 Поиск игроков..." oninput="searchPlayers()">
+                <div id="searchResults" style="margin-top: 10px;"></div>
+            </div>
+            <button class="leaderboard-btn" onclick="showLeaderboard()">Таблица лидеров</button>
+            <button class="create-btn" onclick="loadTeamInvites()" style="background: linear-gradient(135deg, #3b82f6, #1e40af);">Приглашения в команды</button>
+        `;
+    } else {
+        profileContainer.style.display = 'none';
+        
+        switch(page) {
+            case 'teams':
+                await loadTeams();
+                break;
+            case 'regular-matches':
+                await loadRegularMatches();
+                break;
+            case 'tournaments':
+                await loadTournaments();
+                break;
+            case 'admin':
+                if (isAdmin) await showAdminPanel();
+                else tg.showAlert('Доступ запрещён');
+                break;
+            default:
+                document.getElementById('content').innerHTML = '<div class="card">Страница не найдена</div>';
+        }
+    }
+    
+    document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (btn.getAttribute('data-page') === page) btn.classList.add('active');
+    });
+}
+
+function showAdminButton() {
+    const nav = document.querySelector('.nav');
+    const btn = document.createElement('button');
+    btn.className = 'nav-btn';
+    btn.setAttribute('data-page', 'admin');
+    btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M8 4l4 2 4-2"/><path d="M8 12h8"/><path d="M12 8v12"/><rect x="4" y="4" width="16" height="16" rx="2"/></svg><span>Админ</span>`;
+    btn.onclick = () => showPage('admin');
+    nav.appendChild(btn);
+}
+
+// Глобальные функции
+window.selectImage = selectImage;
+window.editProfile = editProfile;
+window.saveProfile = saveProfile;
+window.closeModal = closeModal;
+window.loadTeams = loadTeams;
+window.showTeamDetail = showTeamDetail;
+window.showUserProfile = showUserProfile;
+window.requestJoinTeam = requestJoinTeam;
+window.acceptMember = acceptMember;
+window.rejectMember = rejectMember;
+window.leaveTeam = leaveTeam;
+window.deleteTeam = deleteTeam;
+window.showCreateTeamModal = showCreateTeamModal;
+window.createTeam = createTeam;
+window.searchTeams = searchTeams;
+window.searchTeamsForTournament = searchTeamsForTournament;
+window.registerTeamToTournament = registerTeamToTournament;
+window.joinMatchmaking = joinMatchmaking;
+window.leaveMatchmaking = leaveMatchmaking;
+window.sendGameCode = sendGameCode;
+window.finishMatch = finishMatch;
+window.showPage = showPage;
+window.loadAdminUsers = loadAdminUsers;
+window.loadAdminTeams = loadAdminTeams;
+window.loadAdminMatches = loadAdminMatches;
+window.loadAdminTournaments = loadAdminTournaments;
+window.loadTournamentAdmins = loadTournamentAdmins;
+window.setTournamentAdmin = setTournamentAdmin;
+window.banUser = banUser;
+window.deleteUser = deleteUser;
+window.deleteTeamAdmin = deleteTeamAdmin;
+window.deleteMatchAdmin = deleteMatchAdmin;
+window.deleteTournament = deleteTournament;
+window.showTournamentDetail = showTournamentDetail;
+window.showCreateTournamentModal = showCreateTournamentModal;
+window.createTournament = createTournament;
+window.showRegisterTeamModal = showRegisterTeamModal;
+window.showCreateMatchModal = showCreateMatchModal;
+window.createMatchInTournament = createMatchInTournament;
+window.changeTournamentStatus = changeTournamentStatus;
+window.showSetResultModal = showSetResultModal;
+window.setMatchResult = setMatchResult;
+window.makePrediction = makePrediction;
+window.showLeaderboard = showLeaderboard;
+window.loadRegularMatches = loadRegularMatches;
+window.showBatchPredictModal = showBatchPredictModal;
+window.submitBatchPredictions = submitBatchPredictions;
+window.searchPlayers = searchPlayers;
+window.showPlayerProfile = showPlayerProfile;
+window.inviteToTeam = inviteToTeam;
+window.loadTeamInvites = loadTeamInvites;
+window.acceptInvite = acceptInvite;
+window.declineInvite = declineInvite;
+
+initAuth();
