@@ -119,6 +119,128 @@ async function showUserProfile(userId) {
     });
 }
 
+// ==================== ПОИСК ИГРОКОВ ====================
+async function searchPlayers() {
+    const query = document.getElementById('playerSearchInput')?.value.trim();
+    if (!query) {
+        document.getElementById('searchResults').innerHTML = '';
+        return;
+    }
+    const res = await fetch(`/api/search/users?q=${encodeURIComponent(query)}`);
+    const users = await res.json();
+    const resultsDiv = document.getElementById('searchResults');
+    resultsDiv.innerHTML = users.map(user => `
+        <div class="search-result-item" onclick="showPlayerProfile(${user.telegram_id})">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="${user.avatar_url || 'https://via.placeholder.com/40'}" style="width: 40px; height: 40px; border-radius: 50%; object-fit: cover;">
+                <div>
+                    <strong>${escapeHtml(user.username)}</strong>
+                    <div style="font-size: 12px; color: #8e8e9e;">Очков: ${user.prediction_points || 0}</div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+async function showPlayerProfile(userId) {
+    const res = await fetch(`/api/profile/${userId}`);
+    const player = await res.json();
+    const currentUserTeam = await fetch(`/api/user/team/${currentUser.telegram_id}`).then(r => r.json());
+    const canInvite = currentUserTeam.team && player.team_id !== currentUserTeam.team.id && !player.team_id;
+    
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.innerHTML = `
+        <div class="modal-content" style="max-width: 400px;">
+            <div class="profile-banner" style="height: 100px; background-image: url('${player.banner_url || ''}'); background-size: cover; background-position: center; border-radius: 12px; margin-bottom: 10px;">
+                ${!player.banner_url ? '<div style="height: 100px; background: linear-gradient(135deg, #3b82f6, #1e40af); border-radius: 12px;"></div>' : ''}
+            </div>
+            <div style="text-align: center; margin-top: -40px;">
+                <img src="${player.avatar_url || 'https://via.placeholder.com/80'}" style="width: 80px; height: 80px; border-radius: 50%; border: 4px solid #1e2230; object-fit: cover;">
+            </div>
+            <h3 style="text-align: center; margin-top: 10px;">${escapeHtml(player.username)}</h3>
+            <p style="text-align: center; color: #8e8e9e;">${escapeHtml(player.description || 'Нет описания')}</p>
+            <div class="player-stats" style="display: flex; justify-content: space-around; margin: 15px 0; padding: 10px; background: rgba(59,130,246,0.2); border-radius: 12px;">
+                <div><strong>⭐ ${player.prediction_points || 0}</strong><br>очков</div>
+                <div><strong>${player.team ? player.team.name : 'Нет команды'}</strong><br>команда</div>
+            </div>
+            ${canInvite ? `
+                <button class="invite-btn" onclick="inviteToTeam(${player.telegram_id})" style="width: 100%; padding: 10px; background: linear-gradient(135deg, #10b981, #059669); border: none; border-radius: 30px; color: white; font-weight: 600; cursor: pointer;">Пригласить в команду</button>
+            ` : ''}
+            <div class="modal-buttons" style="margin-top: 15px;">
+                <button onclick="closeModal()">Закрыть</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
+
+async function inviteToTeam(playerId) {
+    const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
+    const userTeam = await userTeamRes.json();
+    if (!userTeam.team) {
+        tg.showAlert('У вас нет команды');
+        closeModal();
+        return;
+    }
+    const res = await fetch('/api/teams/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ teamId: userTeam.team.id, playerId, inviterId: currentUser.telegram_id })
+    });
+    const result = await res.json();
+    tg.showAlert(result.message);
+    closeModal();
+}
+
+async function loadTeamInvites() {
+    const res = await fetch(`/api/teams/invites/${currentUser.telegram_id}`);
+    const invites = await res.json();
+    const content = document.getElementById('content');
+    if (invites.length === 0) {
+        content.innerHTML = `<div class="card">Нет приглашений в команды</div>`;
+        return;
+    }
+    content.innerHTML = `
+        <h3>Приглашения в команды</h3>
+        ${invites.map(inv => `
+            <div class="card">
+                <p>Команда <strong>${escapeHtml(inv.team_name)}</strong> приглашает вас вступить</p>
+                <div class="invite-actions">
+                    <button onclick="acceptInvite('${inv.team_id}')">Принять</button>
+                    <button onclick="declineInvite('${inv.team_id}')" class="delete-btn">Отклонить</button>
+                </div>
+            </div>
+        `).join('')}
+    `;
+}
+
+async function acceptInvite(teamId) {
+    await fetch(`/api/teams/${teamId}/join`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: currentUser.telegram_id })
+    });
+    await fetch(`/api/teams/invite/${teamId}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: currentUser.telegram_id, accept: true })
+    });
+    tg.showAlert('Вы вступили в команду');
+    await loadProfile();
+    showPage('profile');
+}
+
+async function declineInvite(teamId) {
+    await fetch(`/api/teams/invite/${teamId}/respond`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId: currentUser.telegram_id, accept: false })
+    });
+    tg.showAlert('Приглашение отклонено');
+    loadTeamInvites();
+}
+
 // ==================== АВТОРИЗАЦИЯ ====================
 async function initAuth() {
     const user = tg.initDataUnsafe.user;
@@ -178,7 +300,7 @@ async function loadProfile() {
         document.getElementById('banner').style.backgroundSize = 'cover';
         document.getElementById('banner').style.backgroundPosition = 'center';
     } else {
-        document.getElementById('banner').style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%)';
+        document.getElementById('banner').style.background = 'linear-gradient(135deg, #3b82f6 0%, #1e40af 50%, #1e3a8a 100%)';
     }
     
     const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
@@ -446,12 +568,14 @@ async function createTeam() {
     loadTeams();
 }
 
-// ==================== МАТЧМЕЙКИНГ (ОЧЕРЕДЬ 2x2) ====================
+// ==================== МАТЧМЕЙКИНГ (ЛЮБОЙ ИГРОК КОМАНДЫ, КД 3 МИНУТЫ) ====================
+let lastMatchSearchTime = 0;
+const MATCH_COOLDOWN = 3 * 60 * 1000; // 3 минуты
+
 async function loadRegularMatches() {
     const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
     const userTeam = await userTeamRes.json();
     const myTeamId = userTeam.team?.id;
-    const myTeamName = userTeam.team?.name;
 
     const content = document.getElementById('content');
     if (!myTeamId) {
@@ -461,6 +585,11 @@ async function loadRegularMatches() {
 
     const statusRes = await fetch(`/api/matchmaking/status/${myTeamId}`);
     const status = await statusRes.json();
+    
+    // Проверка КД
+    const now = Date.now();
+    const timeLeft = lastMatchSearchTime + MATCH_COOLDOWN - now;
+    const isOnCooldown = timeLeft > 0;
     
     if (status.inMatch) {
         const match = status.match;
@@ -508,8 +637,18 @@ async function loadRegularMatches() {
         return;
     }
     
+    let cooldownHtml = '';
+    if (isOnCooldown) {
+        const minutes = Math.floor(timeLeft / 60000);
+        const seconds = Math.floor((timeLeft % 60000) / 1000);
+        cooldownHtml = `<div class="warning-banner" style="background: rgba(59,130,246,0.2); color: #3b82f6;">⏱️ Поиск матча будет доступен через ${minutes}:${seconds.toString().padStart(2, '0')}</div>`;
+        // Обновляем таймер
+        setTimeout(() => loadRegularMatches(), 1000);
+    }
+    
     content.innerHTML = `
-        <button class="create-btn" onclick="joinMatchmaking()">🔍 Искать матч (2x2)</button>
+        ${cooldownHtml}
+        <button class="create-btn" onclick="joinMatchmaking()" ${isOnCooldown ? 'disabled style="opacity: 0.5;"' : ''}>🔍 Искать матч (2x2)</button>
     `;
 }
 
@@ -520,6 +659,15 @@ async function joinMatchmaking() {
         tg.showAlert('Сначала вступите в команду');
         return;
     }
+    
+    // Проверка КД
+    const now = Date.now();
+    if (now - lastMatchSearchTime < MATCH_COOLDOWN) {
+        const remaining = Math.ceil((MATCH_COOLDOWN - (now - lastMatchSearchTime)) / 1000);
+        tg.showAlert(`Подождите ${remaining} секунд перед новым поиском`);
+        return;
+    }
+    
     const res = await fetch('/api/matchmaking/join', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -541,13 +689,29 @@ async function leaveMatchmaking() {
     const userTeamRes = await fetch(`/api/user/team/${currentUser.telegram_id}`);
     const userTeam = await userTeamRes.json();
     if (!userTeam.team) return;
+    
+    // Устанавливаем КД при выходе из очереди или матча
+    lastMatchSearchTime = Date.now();
+    
     await fetch('/api/matchmaking/leave', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ teamId: userTeam.team.id })
     });
     if (window.matchmakingInterval) clearInterval(window.matchmakingInterval);
-    tg.showAlert('Вы вышли из очереди');
+    
+    // Также удаляем активный матч если есть
+    const statusRes = await fetch(`/api/matchmaking/status/${userTeam.team.id}`);
+    const status = await statusRes.json();
+    if (status.inMatch) {
+        await fetch(`/api/matches/${status.match.id}/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: currentUser.telegram_id })
+        });
+    }
+    
+    tg.showAlert('Вы вышли из поиска. КД 3 минуты');
     loadRegularMatches();
 }
 
@@ -582,10 +746,11 @@ async function finishMatch(matchId) {
         body: JSON.stringify({ winner })
     });
     tg.showAlert('Матч завершён');
+    lastMatchSearchTime = Date.now(); // КД после завершения матча
     loadRegularMatches();
 }
 
-// ==================== ТУРНИРЫ (ПРОДОЛЖЕНИЕ) ====================
+// ==================== ТУРНИРЫ ====================
 async function loadTournaments() {
     const res = await fetch('/api/tournaments');
     const tournaments = await res.json();
@@ -1189,30 +1354,36 @@ async function showPage(page) {
     const profileContainer = document.getElementById('profileContainer');
     if (page === 'profile') {
         profileContainer.style.display = 'block';
+        await loadProfile();
+        document.getElementById('content').innerHTML = `
+            <div id="teamInfo"></div>
+            <div class="search-bar" style="margin-top: 20px;">
+                <input type="text" id="playerSearchInput" placeholder="🔍 Поиск игроков..." oninput="searchPlayers()">
+                <div id="searchResults" style="margin-top: 10px;"></div>
+            </div>
+            <button class="leaderboard-btn" onclick="showLeaderboard()">Таблица лидеров</button>
+            <button class="create-btn" onclick="loadTeamInvites()" style="background: linear-gradient(135deg, #3b82f6, #1e40af);">Приглашения в команды</button>
+        `;
     } else {
         profileContainer.style.display = 'none';
-    }
-    
-    switch(page) {
-        case 'profile':
-            await loadProfile();
-            document.getElementById('content').innerHTML = '<div id="teamInfo"></div><button class="leaderboard-btn" onclick="showLeaderboard()">Таблица лидеров</button>';
-            break;
-        case 'teams':
-            await loadTeams();
-            break;
-        case 'regular-matches':
-            await loadRegularMatches();
-            break;
-        case 'tournaments':
-            await loadTournaments();
-            break;
-        case 'admin':
-            if (isAdmin) await showAdminPanel();
-            else tg.showAlert('Доступ запрещён');
-            break;
-        default:
-            document.getElementById('content').innerHTML = '<div class="card">Страница не найдена</div>';
+        
+        switch(page) {
+            case 'teams':
+                await loadTeams();
+                break;
+            case 'regular-matches':
+                await loadRegularMatches();
+                break;
+            case 'tournaments':
+                await loadTournaments();
+                break;
+            case 'admin':
+                if (isAdmin) await showAdminPanel();
+                else tg.showAlert('Доступ запрещён');
+                break;
+            default:
+                document.getElementById('content').innerHTML = '<div class="card">Страница не найдена</div>';
+        }
     }
     
     document.querySelectorAll('.nav-btn').forEach(btn => {
@@ -1279,5 +1450,11 @@ window.showLeaderboard = showLeaderboard;
 window.loadRegularMatches = loadRegularMatches;
 window.showBatchPredictModal = showBatchPredictModal;
 window.submitBatchPredictions = submitBatchPredictions;
+window.searchPlayers = searchPlayers;
+window.showPlayerProfile = showPlayerProfile;
+window.inviteToTeam = inviteToTeam;
+window.loadTeamInvites = loadTeamInvites;
+window.acceptInvite = acceptInvite;
+window.declineInvite = declineInvite;
 
 initAuth();
