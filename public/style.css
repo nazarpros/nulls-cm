@@ -167,15 +167,18 @@ h2 {
     padding: 10px 0 20px;
     border-top: 1px solid rgba(255,255,255,0.05);
     z-index: 100;
+    overflow-x: auto;
+    justify-content: center;
 }
 
 .nav-btn {
     flex: 1;
+    min-width: 70px;
     background: none;
     border: none;
     color: #8e8e9e;
-    font-size: 12px;
-    padding: 8px;
+    font-size: 11px;
+    padding: 8px 6px;
     cursor: pointer;
     display: flex;
     flex-direction: column;
@@ -189,8 +192,8 @@ h2 {
 }
 
 .nav-btn svg {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     stroke: currentColor;
     stroke-width: 2;
     fill: none;
@@ -698,8 +701,7 @@ h2 {
 .tournament-status.finished {
     background: #00c85320;
     color: #00c853;
-}
-
+    }
 /* Детальная страница турнира */
 .tournament-detail {
     padding: 10px;
@@ -902,6 +904,22 @@ h2 {
     padding: 20px;
 }
 
+.batch-predict-item {
+    background: rgba(30,34,48,0.6);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 12px;
+}
+
+.batch-predict-select {
+    width: 100%;
+    padding: 8px;
+    background: #2a2e3e;
+    border: none;
+    border-radius: 8px;
+    color: white;
+}
+
 /* Таблица лидеров */
 .leaderboard {
     padding: 10px;
@@ -1028,6 +1046,29 @@ h2 {
 
 .small-btn.danger {
     background: #ff3b30;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 10px;
+    margin-left: 8px;
+}
+
+.role-badge.super-admin {
+    background: #ff3b30;
+    color: white;
+}
+
+.role-badge.tournament-admin {
+    background: #ffa500;
+    color: #1a1f2e;
+}
+
+.info-text {
+    font-size: 12px;
+    color: #8e8e9e;
 }
 
 /* Модальное окно */
@@ -1166,14 +1207,18 @@ h2 {
         grid-template-columns: repeat(2, 1fr);
     }
     .nav-btn span {
-        font-size: 10px;
+        font-size: 9px;
     }
     .nav-btn svg {
-        width: 20px;
-        height: 20px;
+        width: 18px;
+        height: 18px;
+    }
+    .nav-btn {
+        min-width: 60px;
+        padding: 8px 4px;
     }
 }
 
 button:active {
     transform: scale(0.97);
-                           }
+}
